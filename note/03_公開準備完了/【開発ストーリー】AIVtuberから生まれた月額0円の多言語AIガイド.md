@@ -23,6 +23,8 @@ https://guidecastai.netlify.app/
 
 ### 使った技術スタック
 
+Unity初心者でも扱いやすい技術を選びました。
+
 **【音声合成】VoiceVox**
 ・自然な日本語音声を生成
 ・リアルタイム処理が可能
@@ -31,10 +33,11 @@ https://guidecastai.netlify.app/
 **VoiceVox公式サイト：**
 https://voicevox.hiroshiba.jp/
 
-**【AI対話】ChatGPT API**
+**【AI対話】ChatGPT API（OpenAI）**
 ・自然な会話が実現
 ・多言語対応が標準で可能
 ・プロンプト制御で柔軟なキャラクター設定
+・Claude APIとの比較も検討しました
 
 **【リップシンク】uLipSync**
 ・音声に合わせて口が動く
