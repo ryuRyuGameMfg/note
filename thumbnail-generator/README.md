@@ -1,36 +1,231 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# noteリリースツール
 
-## Getting Started
+公開準備完了の記事を一覧表示し、ワンクリックでコピー・ダウンロードできるモダンなダークモードツールです。
 
-First, run the development server:
+![Next.js](https://img.shields.io/badge/Next.js-16.0-black?style=flat-square&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.0-38bdf8?style=flat-square&logo=tailwind-css)
+
+## ✨ 特徴
+
+- 🎨 **美しい4段階ブルーのダークモードデザイン**（グラスモーフィズム・グラデーション）
+- ⚡ **Next.js 16 + TypeScript + Tailwind CSS + shadcn/ui + Framer Motion**
+- 📋 **ワンクリックコピー**（タイトル・本文）
+- 🖼️ **ワンクリックダウンロード**（サムネイル・インフォグラフ全て）
+- 🌓 **ダーク/ホワイトモード切り替え**（インフォグラフ）
+- 🔍 **リアルタイム検索**
+- 🎯 **SVGアイコンのみ使用**（絵文字完全禁止）
+- 📊 **公開管理機能**（公開済みチェック・フォルダ移動）
+- 📱 **レスポンシブ対応**
+
+## 🚀 クイックスタート
+
+### 必要な環境
+
+- Node.js 18以上
+- npm または yarn
+
+### インストール
 
 ```bash
+# リポジトリをクローン
+git clone <repository-url>
+cd thumbnail-generator
+
+# 依存関係をインストール
+npm install
+
+# 開発サーバーを起動
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+サーバーが **http://localhost:3005** で起動します。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 プロジェクト構造
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+thumbnail-generator/
+├── src/
+│   ├── app/
+│   │   ├── page.tsx                    # 記事一覧ページ
+│   │   ├── article/[id]/page.tsx      # 記事詳細ページ
+│   │   ├── api/
+│   │   │   └── articles/
+│   │   │       ├── route.ts            # 記事一覧API
+│   │   │       └── [id]/
+│   │   │           ├── route.ts        # 記事詳細API
+│   │   │           └── publish/
+│   │   │               └── route.ts    # 公開管理API
+│   │   └── globals.css                 # グローバルスタイル
+│   ├── components/
+│   │   ├── templates/
+│   │   │   ├── ThumbnailTemplates.tsx  # サムネイルテンプレート
+│   │   │   └── InfographicTemplates.tsx # インフォグラフテンプレート
+│   │   └── ui/                         # shadcn/uiコンポーネント
+│   └── lib/
+│       ├── parseArticle.ts             # 記事解析
+│       ├── parseMarkdownText.tsx       # マークダウンパース
+│       └── utils.ts                    # ユーティリティ
+├── REGULATIONS.md                      # デザインレギュレーション
+├── README.md                           # このファイル
+└── package.json
+```
 
-## Learn More
+## 📝 記事の配置
 
-To learn more about Next.js, take a look at the following resources:
+記事は以下のディレクトリに配置してください：
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+note/
+├── 03_公開準備完了/  # 公開前の記事
+└── 04_公開済み/      # 公開済みの記事
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎨 デザイン規則
 
-## Deploy on Vercel
+### カラーパレット（統一）
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+#### メインカラー: ブルー系
+```
+Blue-950: #172554  // 最深部背景
+Blue-900: #1e3a8a  // 深い背景
+Blue-800: #1e40af  // カード背景
+Blue-600: #2563eb  // プライマリボタン
+Blue-500: #3b82f6  // アクセント
+Blue-400: #60a5fa  // ハイライト
+Blue-300: #93c5fd  // テキスト明
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### アクセントカラー
+```
+Green-500: #22c55e  // 成功・メリット
+Red-500:   #ef4444  // エラー・デメリット
+Orange-500: #f97316 // 注目
+Cyan-400:   #22d3ee  // 情報
+Purple-500: #a855f7  // 特別
+```
+
+### アイコン規則
+- ✅ **SVGアイコンのみ使用**（lucide-react）
+- ❌ **絵文字完全禁止**
+- **サイズ**: 24px〜32px（インフォグラフ）、16px〜24px（UI）
+- **ストローク**: strokeWidth={2}〜{3}
+
+詳細は [REGULATIONS.md](./REGULATIONS.md) を参照してください。
+
+## 🛠️ 技術スタック
+
+- **Next.js 16**: React フレームワーク（Turbopack）
+- **TypeScript**: 型安全
+- **Tailwind CSS**: ユーティリティファーストCSS
+- **shadcn/ui**: 美しいコンポーネントライブラリ
+- **Framer Motion**: アニメーションライブラリ
+- **lucide-react**: SVGアイコンライブラリ
+- **html-to-image**: 画像ダウンロード
+- **file-saver**: ファイル保存
+
+## 📚 コマンド
+
+```bash
+# 開発サーバー起動
+npm run dev
+
+# ビルド
+npm run build
+
+# 本番環境で起動
+npm start
+
+# Lintチェック
+npm run lint
+```
+
+## 🎯 主な機能
+
+### 記事一覧
+- ダークモードの美しい記事一覧
+- リアルタイム検索
+- 公開状態バッジ表示
+- 記事カードをクリック → 詳細画面へ
+
+### 記事詳細
+1. **タイトルコピー**: 「タイトルコピー」ボタンをクリック
+2. **本文コピー**: 「本文コピー」ボタンをクリック
+3. **サムネイルダウンロード**: サムネイルの「JPGダウンロード」ボタンをクリック
+4. **インフォグラフ切り替え**: 「ダーク」/「ホワイト」ボタンでデザイン切り替え
+5. **インフォグラフダウンロード**: 各インフォグラフの「JPGダウンロード」ボタンをクリック
+6. **公開管理**: チェックボックスで公開済みにマーク → 「確定して移動」でフォルダ移動
+
+### 公開管理
+- 記事詳細ページで「公開済みにする」チェック
+- 「確定して移動」ボタンで `04_公開済み` フォルダに移動
+- 公開取り消しも可能
+
+## 📋 デザインチェックリスト
+
+### サムネイル作成時
+- [ ] サイズは1280×670px
+- [ ] 内側に48pxの余白
+- [ ] 【】の後に改行
+- [ ] ブルー系グラデーション背景
+- [ ] **SVGアイコンのみ使用**
+- [ ] **絵文字を使っていない**
+- [ ] カラーパレット内の色のみ使用
+
+### インフォグラフ作成時（厳格）
+- [ ] 幅は800px固定 (`w-[800px]`)
+- [ ] 最小高さ600px (`min-h-[600px]`)
+- [ ] パディング48px (`p-12`)
+- [ ] **`flex flex-col`で余白を自動調整**
+- [ ] **絵文字を使っていない**
+- [ ] **SVGアイコンのみ使用**
+- [ ] **全テキストに`parseMarkdownText()`適用済み**
+- [ ] **アスタリスク露出していない**（`**太字**` → `<strong>`）
+- [ ] カラーパレット内の色のみ使用
+- [ ] ダーク/ホワイトモード対応
+- [ ] 記事内容に適したインフォグラフのみ表示
+- [ ] 下部に不自然な余白がない
+
+## 🚨 注意事項
+
+- ローカル専用（localhost:3005）
+- Node.js 18以上推奨
+- ポート3005が使用可能であること
+- **絵文字は絶対に使用しない**（SVGアイコンのみ）
+- **カラーパレット外の色は使用しない**
+
+## 📖 関連ドキュメント
+
+- **[REGULATIONS.md](./REGULATIONS.md)**: デザインレギュレーション（必読）
+- **運用ルール/02_note/**: note執筆ガイド
+- **運用ルール/04_SEO/**: SEO対策テクニック
+
+## 🔄 更新履歴
+
+### v2.0 (2025年12月18日)
+- インフォグラフ品質統一・厳格化
+- マークダウン処理の完全実装
+- カラーパレットの厳格化
+- 余白問題の完全解決
+- 公開管理機能追加
+
+### v1.0 (2025年12月)
+- 初版リリース
+- 記事一覧・詳細機能
+- サムネイル・インフォグラフ生成
+- ダークモードデザイン
+
+## 📄 ライセンス
+
+このプロジェクトは個人利用のためのツールです。
+
+## 🤝 コントリビューション
+
+バグ報告や機能要望は、Issueでお知らせください。
+
+---
+
+**運用ルール**: 
+- サムネイル・インフォグラフは**REGULATIONS.md**に従って作成
+- カラーパレット: 4段階ブルー統一
+- アイコン: SVGのみ（絵文字完全禁止）

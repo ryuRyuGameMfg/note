@@ -25,6 +25,15 @@ export interface ParsedArticle {
   };
 }
 
+/**
+ * タイトルを解析して【】の後に改行を入れる
+ */
+export function parseTitle(title: string): string {
+  // 【】の閉じ括弧の後に改行を入れる
+  // ただし、｜（パイプ）の前の【】だけを対象にする
+  return title.replace(/】(?!.*】)/g, '】\n');
+}
+
 export function parseMarkdown(content: string): ParsedArticle {
   const lines = content.split('\n');
   
@@ -96,14 +105,23 @@ export function parseMarkdown(content: string): ParsedArticle {
   
   // メリット・デメリットの検出
   let proscons: ParsedArticle['proscons'] | undefined;
-  const prosIndex = lines.findIndex(l => 
-    l.includes('メリット') || l.includes('強み') || l.includes('良い点') || l.includes('Manusの強み')
-  );
-  const consIndex = lines.findIndex(l => 
-    l.includes('デメリット') || l.includes('注意点') || l.includes('弱み') || l.includes('制約')
+  
+  // 「おすすめな人」「向いている人」セクションを優先的に検出
+  const recommendedIndex = lines.findIndex(l => 
+    l.includes('おすすめな人') || l.includes('向いている人') || l.includes('こんな人におすすめ')
   );
   
-  if (prosIndex >= 0 || consIndex >= 0) {
+  // 通常のメリット・デメリットセクションを検出
+  const prosIndex = lines.findIndex(l => 
+    (l.includes('メリット') || l.includes('強み') || l.includes('良い点') || l.includes('Manusの強み')) &&
+    !l.includes('デメリット') // デメリットと同じ行にあるものは除外
+  );
+  const consIndex = lines.findIndex(l => 
+    (l.includes('デメリット') || l.includes('注意点') || l.includes('弱み') || l.includes('制約')) &&
+    !l.includes('メリット') // メリットと同じ行にあるものは除外
+  );
+  
+  if (prosIndex >= 0 && consIndex >= 0) {
     const pros: string[] = [];
     const cons: string[] = [];
     let prosTitle = 'メリット・デメリット';
@@ -114,33 +132,36 @@ export function parseMarkdown(content: string): ParsedArticle {
       if (prosLine.startsWith('## ') || prosLine.startsWith('### ')) {
         prosTitle = prosLine.replace(/^#+\s*/, '');
       }
-      for (let i = prosIndex + 1; i < lines.length && i < prosIndex + 15; i++) {
+      for (let i = prosIndex + 1; i < lines.length && i < prosIndex + 20; i++) {
         const line = lines[i].trim();
         if (line.startsWith('-') || line.startsWith('・') || line.startsWith('✓')) {
           const text = line.replace(/^[-・✓]\s*/, '').replace(/\*\*/g, '');
-          if (text.length > 0 && text.length < 50) {
+          if (text.length > 5 && text.length < 60 && !text.includes('**')) {
             pros.push(text);
           }
         }
-        if (line.startsWith('## ') || line.startsWith('### ')) break;
+        // 次のセクションに到達したら終了
+        if ((line.startsWith('## ') || line.startsWith('### ')) && i > prosIndex + 2) break;
       }
     }
     
     // デメリット抽出
     if (consIndex >= 0) {
-      for (let i = consIndex + 1; i < lines.length && i < consIndex + 15; i++) {
+      for (let i = consIndex + 1; i < lines.length && i < consIndex + 20; i++) {
         const line = lines[i].trim();
         if (line.startsWith('-') || line.startsWith('・') || line.startsWith('▼')) {
           const text = line.replace(/^[-・▼]\s*/, '').replace(/\*\*/g, '');
-          if (text.length > 0 && text.length < 50) {
+          if (text.length > 5 && text.length < 60 && !text.includes('**')) {
             cons.push(text);
           }
         }
-        if (line.startsWith('## ') || line.startsWith('### ')) break;
+        // 次のセクションに到達したら終了
+        if ((line.startsWith('## ') || line.startsWith('### ')) && i > consIndex + 2) break;
       }
     }
     
-    if (pros.length > 0 || cons.length > 0) {
+    // メリット・デメリットが両方3つ以上ある場合のみ採用
+    if (pros.length >= 3 && cons.length >= 3) {
       proscons = { 
         title: prosTitle,
         pros: pros.slice(0, 5), 
@@ -150,25 +171,40 @@ export function parseMarkdown(content: string): ParsedArticle {
   }
   
   // 統計データの検出（数字+単位のパターン）
-  const statsPatterns = content.match(/(\d+[\d,]*)(件|万円?|年|%|個|回|時間|日|倍|本|円)/g);
+  // より意味のある統計データのみを抽出
+  const statsPatterns = content.match(/(\d+[\d,]*)(件|万円|千円|億円|年|%|GB|TB|時間|日|ヶ月|倍)/g);
   let stats: ParsedArticle['stats'] | undefined;
-  if (statsPatterns && statsPatterns.length >= 2) {
-    const colors = ['#6366f1', '#22c55e', '#f59e0b', '#ec4899'];
-    const uniqueStats = [...new Set(statsPatterns)];
-    stats = uniqueStats.slice(0, 4).map((match, i) => {
-      // ラベルを推測
-      let label = '指標';
-      if (match.includes('件')) label = '実績';
-      else if (match.includes('万') || match.includes('円')) label = '収入';
-      else if (match.includes('年')) label = '経験';
-      else if (match.includes('%')) label = '達成率';
-      
-      return {
-        value: match,
-        label,
-        color: colors[i % colors.length]
-      };
-    });
+  if (statsPatterns && statsPatterns.length >= 3) {
+    // カラーパレット（REGULATIONS.md準拠）
+    const colors = ['#3b82f6', '#22c55e', '#f97316', '#a855f7', '#22d3ee', '#2563eb'];
+    
+    // 重複を排除し、意味のある数値のみを抽出
+    const uniqueStats = [...new Set(statsPatterns)]
+      .filter(match => {
+        // 小さすぎる数値や年号は除外
+        const num = parseInt(match.replace(/[^0-9]/g, ''));
+        return num >= 10 && num <= 999999;
+      });
+    
+    if (uniqueStats.length >= 3) {
+      stats = uniqueStats.slice(0, 6).map((match, i) => {
+        // ラベルを推測
+        let label = '指標';
+        if (match.includes('件')) label = '実績数';
+        else if (match.includes('万円') || match.includes('円')) label = '金額';
+        else if (match.includes('年') || match.includes('ヶ月')) label = '期間';
+        else if (match.includes('%')) label = '割合';
+        else if (match.includes('GB') || match.includes('TB')) label = '容量';
+        else if (match.includes('時間')) label = '時間';
+        else if (match.includes('倍')) label = '倍率';
+        
+        return {
+          value: match,
+          label,
+          color: colors[i % colors.length]
+        };
+      });
+    }
   }
   
   // おすすめテンプレートを決定
@@ -193,14 +229,27 @@ export function parseMarkdown(content: string): ParsedArticle {
   }
   
   // インフォグラフィック提案
-  if (comparisonData) {
+  // より厳密な条件でインフォグラフを提案
+  if (comparisonData && comparisonData.rows.length >= 3) {
+    // 比較表は3行以上の場合のみ
     suggestedTemplates.infographics.push('comparison-table');
   }
-  if (proscons && (proscons.pros.length > 0 || proscons.cons.length > 0)) {
+  if (proscons && (proscons.pros.length >= 3 && proscons.cons.length >= 3)) {
+    // メリット・デメリットは両方3つ以上の場合のみ
     suggestedTemplates.infographics.push('pros-cons');
   }
-  if (stats && stats.length >= 2) {
-    suggestedTemplates.infographics.push('stats', 'bar-chart');
+  if (stats && stats.length >= 3) {
+    // 統計データは3つ以上の場合のみ
+    suggestedTemplates.infographics.push('stats');
+    // バーチャートは統計データが4つ以上ある場合のみ
+    if (stats.length >= 4) {
+      suggestedTemplates.infographics.push('bar-chart');
+    }
+  }
+  
+  // インフォグラフが1つもない場合でも、比較記事なら比較表を提案
+  if (suggestedTemplates.infographics.length === 0 && isComparison && comparisonData) {
+    suggestedTemplates.infographics.push('comparison-table');
   }
   
   return {

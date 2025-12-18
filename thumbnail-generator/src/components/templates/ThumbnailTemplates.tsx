@@ -22,17 +22,23 @@ export const GradientCenter: React.FC<TemplateProps> = ({ title, subtitle }) => 
 );
 
 // Template 2: 左右分割
-export const SplitLayout: React.FC<TemplateProps> = ({ title, subtitle, accentColor = '#667eea' }) => (
-  <div className="thumbnail-container flex">
-    <div className="w-1/3 flex items-center justify-center" style={{ backgroundColor: accentColor }}>
-      <div className="text-8xl text-white font-bold">📱</div>
+export const SplitLayout: React.FC<TemplateProps> = ({ title, subtitle, accentColor = '#2563eb' }) => {
+  return (
+    <div className="thumbnail-container flex">
+      <div className="w-1/3 flex items-center justify-center" style={{ backgroundColor: accentColor }}>
+        {/* SVGアイコン（Smartphone） */}
+        <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+          <rect width="14" height="20" x="5" y="2" rx="2" ry="2" />
+          <path d="M12 18h.01" />
+        </svg>
+      </div>
+      <div className="w-2/3 bg-white flex flex-col justify-center px-16">
+        <h1 className="text-5xl font-bold text-gray-800 leading-tight">{title}</h1>
+        {subtitle && <p className="text-2xl text-gray-500 mt-4">{subtitle}</p>}
+      </div>
     </div>
-    <div className="w-2/3 bg-white flex flex-col justify-center px-16">
-      <h1 className="text-5xl font-bold text-gray-800 leading-tight">{title}</h1>
-      {subtitle && <p className="text-2xl text-gray-500 mt-4">{subtitle}</p>}
-    </div>
-  </div>
-);
+  );
+};
 
 // Template 3: カード型
 export const CardStyle: React.FC<TemplateProps> = ({ title, subtitle }) => (
@@ -45,30 +51,43 @@ export const CardStyle: React.FC<TemplateProps> = ({ title, subtitle }) => (
 );
 
 // Template 4: ダークモード風
-export const DarkMode: React.FC<TemplateProps> = ({ title, subtitle }) => (
-  <div className="thumbnail-container gradient-dark flex flex-col items-center justify-center p-16 pattern-grid">
-    <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 text-center leading-tight">
-      {title}
-    </h1>
-    {subtitle && <p className="text-2xl text-gray-400 mt-6 text-center">{subtitle}</p>}
-  </div>
-);
+export const DarkMode: React.FC<TemplateProps> = ({ title, subtitle }) => {
+  // タイトルを【】で改行処理
+  const formattedTitle = title.replace(/】/g, '】\n');
+  
+  return (
+    <div className="thumbnail-container gradient-dark flex flex-col items-center justify-center p-16 pattern-grid">
+      <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 text-center leading-tight whitespace-pre-line">
+        {formattedTitle}
+      </h1>
+      {subtitle && <p className="text-2xl text-gray-400 mt-6 text-center">{subtitle}</p>}
+    </div>
+  );
+};
 
 // Template 5: アイコン + タイトル
-export const IconTitle: React.FC<TemplateProps> = ({ title, subtitle, category }) => (
-  <div className="thumbnail-container bg-white flex items-center p-16">
-    <div className="w-1/4 flex items-center justify-center">
-      <div className="w-48 h-48 rounded-full gradient-green-teal flex items-center justify-center">
-        <span className="text-7xl">🚀</span>
+export const IconTitle: React.FC<TemplateProps> = ({ title, subtitle, category }) => {
+  return (
+    <div className="thumbnail-container bg-white flex items-center p-16">
+      <div className="w-1/4 flex items-center justify-center">
+        <div className="w-48 h-48 rounded-full gradient-green-teal flex items-center justify-center">
+          {/* SVGアイコン（Rocket） */}
+          <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+            <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+          </svg>
+        </div>
+      </div>
+      <div className="w-3/4 pl-12">
+        {category && <p className="text-xl text-blue-500 font-semibold mb-2">{category}</p>}
+        <h1 className="text-5xl font-bold text-gray-800 leading-tight">{title}</h1>
+        {subtitle && <p className="text-2xl text-gray-500 mt-4">{subtitle}</p>}
       </div>
     </div>
-    <div className="w-3/4 pl-12">
-      {category && <p className="text-xl text-blue-500 font-semibold mb-2">{category}</p>}
-      <h1 className="text-5xl font-bold text-gray-800 leading-tight">{title}</h1>
-      {subtitle && <p className="text-2xl text-gray-500 mt-4">{subtitle}</p>}
-    </div>
-  </div>
-);
+  );
+};
 
 // Template 6: 数字強調
 export const NumberHighlight: React.FC<TemplateProps & { number: string }> = ({ title, number }) => (
