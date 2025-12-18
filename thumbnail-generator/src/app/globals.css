@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  /* note推奨サイズ */
+  --thumbnail-width: 1280px;
+  --thumbnail-height: 670px;
+  /* プレビュー用スケール */
+  --preview-scale: 0.5;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Noto Sans JP', Arial, Helvetica, sans-serif;
+}
+
+/* note thumbnail size - 実際の出力サイズ */
+.thumbnail-container {
+  width: 1280px;
+  height: 670px;
+  overflow: hidden;
+}
+
+/* プレビュー用ラッパー - 画面に収まるサイズ */
+.preview-wrapper {
+  width: 640px;
+  height: 335px;
+  overflow: hidden;
+  position: relative;
+}
+
+.preview-wrapper > div {
+  transform: scale(0.5);
+  transform-origin: top left;
+}
+
+/* 小さいプレビュー用 */
+.preview-wrapper-sm {
+  width: 320px;
+  height: 167.5px;
+  overflow: hidden;
+  position: relative;
+}
+
+.preview-wrapper-sm > div {
+  transform: scale(0.25);
+  transform-origin: top left;
+}
+
+/* インフォグラフィック用 - 幅固定、高さ可変 */
+.infographic-container {
+  width: 1280px;
+  min-height: 670px;
+}
+
+.infographic-preview-wrapper {
+  width: 640px;
+  overflow: hidden;
+  position: relative;
+}
+
+.infographic-preview-wrapper > div {
+  transform: scale(0.5);
+  transform-origin: top left;
+}
+
+/* Gradient backgrounds */
+.gradient-blue-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-orange-red {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.gradient-green-teal {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.gradient-dark {
+  background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 100%);
+}
+
+.gradient-sunset {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.gradient-ocean {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.gradient-purple-pink {
+  background: linear-gradient(135deg, #c471f5 0%, #fa71cd 100%);
+}
+
+.gradient-mint {
+  background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);
+}
+
+.gradient-night {
+  background: linear-gradient(135deg, #232526 0%, #414345 100%);
+}
+
+.gradient-fire {
+  background: linear-gradient(135deg, #f12711 0%, #f5af19 100%);
+}
+
+/* Pattern overlays */
+.pattern-dots {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.pattern-grid {
+  background-image: 
+    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.pattern-diagonal {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255,255,255,0.03) 10px,
+    rgba(255,255,255,0.03) 20px
+  );
+}
+
+/* スクロールバー非表示 */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
