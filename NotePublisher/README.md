@@ -1,10 +1,16 @@
-# noteリリースツール
+# NotePublisher
 
-公開準備完了の記事を一覧表示し、ワンクリックでコピー・ダウンロードできるモダンなダークモードツールです。
+note記事の公開作業を効率化するローカルツール。記事一覧表示・本文コピー・サムネイル/インフォグラフダウンロード・公開管理が可能です。
 
 ![Next.js](https://img.shields.io/badge/Next.js-16.0-black?style=flat-square&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.0-38bdf8?style=flat-square&logo=tailwind-css)
+
+## ポート番号
+
+**固定ポート: 3005**
+
+このツールは常に `http://localhost:3005` で起動します。他のローカルサービスとの競合を避けるため、このポート番号は変更しないでください。
 
 ## ✨ 特徴
 
@@ -30,7 +36,7 @@
 ```bash
 # リポジトリをクローン
 git clone <repository-url>
-cd thumbnail-generator
+cd NotePublisher
 
 # 依存関係をインストール
 npm install
@@ -44,7 +50,7 @@ npm run dev
 ## 📁 プロジェクト構造
 
 ```
-thumbnail-generator/
+NotePublisher/
 ├── src/
 │   ├── app/
 │   │   ├── page.tsx                    # 記事一覧ページ

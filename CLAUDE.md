@@ -20,7 +20,7 @@ X/（X投稿管理）
 ├── 04_公開済み/
 └── 05_分析/
 
-thumbnail-generator/（noteリリースツール）
+NotePublisher/（noteリリースツール - 固定ポート: 3005）
 ├── README.md（使用方法・技術仕様）
 ├── REGULATIONS.md（デザインレギュレーション）
 └── src/（Next.jsアプリケーション）
@@ -28,7 +28,7 @@ thumbnail-generator/（noteリリースツール）
     ├── components/（UIコンポーネント）
     └── lib/（ユーティリティ）
 
-運用ルール/
+DOCS/（運用ルール・ガイド）
 ├── 00_はじめに.md（AIが最初に読むファイル）
 ├── 01_運用方針/（コンセプト・戦略）
 │ ├── note運用方針.md
@@ -45,13 +45,17 @@ thumbnail-generator/（noteリリースツール）
 │ ├── 公式アルゴリズム情報.md（最重要）
 │ └── 一般テクニック集.md
 └── 05_共通/（CTA・AI運用）
- ├── CTAパターン.md
- └── AI運用.md
+    ├── CTAパターン.md
+    └── AI運用.md
+
+AI_PROJECT_KIT/（AI開発プロジェクト用テンプレート集）
+
+export/（エクスポート用）
 ```
 
 ## AIへの指示
 
-記事・投稿を作成する場合は、まず 運用ルール/00_はじめに.md を読むこと。読む順番が書いてある。
+記事・投稿を作成する場合は、まず DOCS/00_はじめに.md を読むこと。読む順番が書いてある。
 
 ## 記事ライフサイクル（note）
 
@@ -66,7 +70,7 @@ thumbnail-generator/（noteリリースツール）
     ↓
 ✅ note/03_公開準備完了/ で最終チェック（下書きのファイルは削除）
     ↓
-🚀 thumbnail-generator でリリース作業
+🚀 NotePublisher でリリース作業（http://localhost:3005）
     ├── タイトル・本文コピー
     ├── サムネイル・インフォグラフダウンロード
     └── 公開済みチェック → note/04_公開済み/ に移動
@@ -76,9 +80,12 @@ thumbnail-generator/（noteリリースツール）
 
 **原則**: 1記事につき1ファイル。次の段階に進む際は古いファイルを削除して移動。
 
-## noteリリースツール（thumbnail-generator）
+## NotePublisher（noteリリースツール）
 
 公開準備完了の記事を効率的にリリースするためのツールです。
+
+### ポート番号レギュレーション
+**固定ポート: 3005** - 他のローカルサービスとの競合を避けるため、このポート番号は変更禁止です。
 
 ### 主な機能
 - 📋 記事一覧表示（ダークモード）
@@ -89,12 +96,12 @@ thumbnail-generator/（noteリリースツール）
 
 ### 使用方法
 ```bash
-cd thumbnail-generator
+cd NotePublisher
 npm run dev
 # http://localhost:3005 で起動
 ```
 
-詳細は `thumbnail-generator/README.md` を参照してください。
+詳細は `NotePublisher/README.md` を参照してください。
 
 ## note公式アルゴリズム対応
 
