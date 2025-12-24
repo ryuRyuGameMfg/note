@@ -1,50 +1,80 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { FileText, Search, Calendar, ArrowRight } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronDown, Download, Image, BarChart3 } from 'lucide-react';
+import { toPng } from 'html-to-image';
+import { CharacterGlass } from '@/components/templates/ThumbnailTemplates';
+import {
+  GlassProsCons,
+  MinimalStats,
+  FloatingComparison,
+  HorizontalBentoStats,
+  BeforeAfterStats,
+} from '@/components/templates/InfographicTemplates';
 
 interface Article {
   id: string;
   filename: string;
   title: string;
-  modifiedAt: string;
-  status?: 'ready' | 'published';
-  location?: string;
+  content: string;
+}
+
+// 画像データの型定義
+interface ImageData {
+  thumbnail: {
+    title: string;
+    subtitle?: string;
+    characterImage?: string;
+  };
+  infographics: Array<
+    | { type: 'proscons'; title: string; pros: string[]; cons: string[] }
+    | { type: 'stats'; title: string; stats: { value: string; label: string }[] }
+    | { type: 'comparison'; title: string; headers: string[]; rows: { label: string; values: (string | boolean)[] }[] }
+    | { type: 'beforeAfter'; title: string; items: { label: string; before: string; after: string }[] }
+    | { type: 'horizontalStats'; title?: string; stats: { value: string; label: string }[] }
+  >;
 }
 
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const [imageData, setImageData] = useState<ImageData | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [characterImage, setCharacterImage] = useState<string>('');
+
+  const characterPresets = [
+    { id: 'none', name: 'なし', url: '' },
+    { id: 'dragon', name: 'ドラゴン', url: '/characters/dragon.png' },
+    { id: 'witch', name: '魔女', url: '/characters/witch.png' },
+  ];
+
+  const thumbnailRef = useRef<HTMLDivElement>(null);
+  const infographicRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     fetchArticles();
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredArticles(articles);
-    } else {
-      const filtered = articles.filter(article =>
-        article.title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredArticles(filtered);
+    if (selectedArticle) {
+      fetchImageData(selectedArticle.filename);
     }
-  }, [searchQuery, articles]);
+  }, [selectedArticle]);
 
   const fetchArticles = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/articles');
+      const res = await fetch('/api/articles?folder=03_公開準備完了');
       const data = await res.json();
       setArticles(data.articles || []);
-      setFilteredArticles(data.articles || []);
+      if (data.articles?.length > 0) {
+        const firstArticle = data.articles[0];
+        const detailRes = await fetch(`/api/articles/${encodeURIComponent(firstArticle.id)}`);
+        const detailData = await detailRes.json();
+        setSelectedArticle(detailData);
+      }
     } catch (error) {
       console.error('Failed to fetch articles:', error);
     } finally {
@@ -52,116 +82,250 @@ export default function Home() {
     }
   };
 
+  const fetchImageData = async (filename: string) => {
+    try {
+      const res = await fetch(`/api/imagedata/${encodeURIComponent(filename)}`);
+      const result = await res.json();
+
+      if (result.exists && result.data) {
+        setImageData(result.data);
+        setCharacterImage(result.data.thumbnail.characterImage || '');
+      } else {
+        // JSONがない場合は記事タイトルだけ表示
+        setImageData({
+          thumbnail: {
+            title: selectedArticle?.title || 'タイトル未設定',
+            subtitle: '',
+          },
+          infographics: []
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch image data:', error);
+    }
+  };
+
+  const selectArticle = async (article: Article) => {
+    try {
+      const res = await fetch(`/api/articles/${encodeURIComponent(article.id)}`);
+      const data = await res.json();
+      setSelectedArticle(data);
+      setIsDropdownOpen(false);
+    } catch (error) {
+      console.error('Failed to fetch article:', error);
+    }
+  };
+
+  const downloadImage = async (ref: React.RefObject<HTMLDivElement> | HTMLDivElement | null, filename: string) => {
+    const element = ref && 'current' in ref ? ref.current : ref;
+    if (!element) return;
+    try {
+      const dataUrl = await toPng(element, { pixelRatio: 2 });
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error('Failed to download:', error);
+    }
+  };
+
+  const downloadAllInfographics = async () => {
+    for (let i = 0; i < infographicRefs.current.length; i++) {
+      const ref = infographicRefs.current[i];
+      if (ref) {
+        await downloadImage(ref, `infographic-${i + 1}-${Date.now()}.png`);
+      }
+    }
+  };
+
+  const renderInfographic = (info: ImageData['infographics'][0]) => {
+    switch (info.type) {
+      case 'proscons':
+        return (
+          <GlassProsCons
+            title={info.title}
+            pros={info.pros}
+            cons={info.cons}
+          />
+        );
+      case 'stats':
+        return (
+          <MinimalStats
+            title={info.title}
+            stats={info.stats.map(s => ({ ...s, color: '' }))}
+          />
+        );
+      case 'comparison':
+        return (
+          <FloatingComparison
+            title={info.title}
+            headers={info.headers}
+            rows={info.rows}
+          />
+        );
+      case 'beforeAfter':
+        return (
+          <BeforeAfterStats
+            title={info.title}
+            items={info.items}
+          />
+        );
+      case 'horizontalStats':
+        return (
+          <HorizontalBentoStats
+            title={info.title}
+            stats={info.stats.map(s => ({ ...s, color: '' }))}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-blue-950">
+    <div className="min-h-screen bg-gray-950 text-white">
       {/* ヘッダー */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-blue-900/90 border-b border-blue-600/20 shadow-lg shadow-blue-500/10">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between"
-          >
+      <header className="border-b border-white/10 backdrop-blur-xl bg-gray-950/80 sticky top-0 z-50">
+        <div className="max-w-[1400px] mx-auto px-8 py-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 shadow-lg shadow-blue-500/30">
-                <FileText className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
+                <Image className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-blue-400 to-blue-300">
-                  リリース記事一覧
-                </h1>
-                <p className="text-sm text-blue-300/60">noteリリース用ツール</p>
+                <h1 className="text-xl font-bold">NotePublisher</h1>
+                <p className="text-xs text-gray-500">プレビュー＆ダウンロード</p>
               </div>
             </div>
-            <Badge variant="secondary" className="bg-blue-600/20 text-blue-300 border-blue-500/30 shadow-lg shadow-blue-500/10">
-              {articles.length}件
-            </Badge>
-          </motion.div>
+
+            {/* 記事選択ドロップダウン */}
+            <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                >
+                  <span className="text-sm text-gray-300 max-w-[400px] truncate">
+                    {selectedArticle?.title || '記事を選択'}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {isDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 top-full mt-2 w-[500px] max-h-[400px] overflow-y-auto rounded-xl bg-gray-900 border border-white/10 shadow-2xl z-50"
+                    >
+                      {articles.map((article) => (
+                        <button
+                          key={article.id}
+                          onClick={() => selectArticle(article)}
+                          className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                        >
+                          <span className="line-clamp-2">{article.title}</span>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* 検索バー */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-8"
-        >
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400/60" />
-            <Input
-              type="text"
-              placeholder="記事を検索..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-14 bg-blue-900/70 border-blue-600/30 text-white placeholder:text-blue-300/40 
-                         focus:border-blue-500/60 focus:ring-blue-500/30 rounded-xl shadow-lg shadow-blue-500/10
-                         backdrop-blur-sm"
-            />
-          </div>
-        </motion.div>
-
-        {/* 記事一覧 */}
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
-          </div>
-        ) : filteredArticles.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
-            <FileText className="w-16 h-16 text-blue-700 mx-auto mb-4" />
-            <p className="text-blue-400 text-lg">記事が見つかりませんでした</p>
-          </motion.div>
-        ) : (
-          <div className="grid gap-4">
-            {filteredArticles.map((article, index) => (
-              <motion.div
-                key={article.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Link href={`/article/${encodeURIComponent(article.id)}`}>
-                  <Card className="group relative overflow-hidden bg-gradient-to-br from-blue-900/80 to-blue-800/60 
-                                 border-blue-600/20 hover:border-blue-500/40 transition-all duration-500 
-                                 hover:shadow-2xl hover:shadow-blue-500/20 cursor-pointer backdrop-blur-sm">
-                    {/* 光るエフェクト */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-400/10 to-blue-600/0 
-                                  opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
-                    <CardContent className="relative p-6 flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors line-clamp-2">
-                            {article.title}
-                          </h3>
-                          {article.status === 'published' && (
-                            <Badge className="bg-green-500/20 text-green-300 border-green-500/30 shadow-lg shadow-green-500/10">
-                              公開済み
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-blue-300/60">
-                          <Calendar className="w-4 h-4" />
-                          <span>{new Date(article.modifiedAt).toLocaleDateString('ja-JP')}</span>
-                        </div>
-                      </div>
-                      
-                      <motion.div
-                        whileHover={{ x: 5 }}
-                        className="ml-4"
+      <main className="max-w-[1400px] mx-auto px-8 py-8">
+        {imageData ? (
+          <div className="space-y-12">
+            {/* サムネイルセクション */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Image className="w-5 h-5 text-cyan-400" />
+                  <h2 className="text-lg font-semibold">サムネイル</h2>
+                  <span className="text-xs text-gray-500">1280 x 670px</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-1">
+                    {characterPresets.map((preset) => (
+                      <button
+                        key={preset.id}
+                        onClick={() => setCharacterImage(preset.url)}
+                        className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
+                          characterImage === preset.url
+                            ? 'bg-cyan-500 text-white'
+                            : 'bg-white/5 hover:bg-white/10 text-gray-400'
+                        }`}
                       >
-                        <ArrowRight className="w-6 h-6 text-blue-400/40 group-hover:text-blue-300 transition-colors" />
-                      </motion.div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              </motion.div>
-            ))}
+                        {preset.name}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => downloadImage(thumbnailRef, `thumbnail-${Date.now()}.png`)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 transition-colors text-sm font-medium"
+                  >
+                    <Download className="w-4 h-4" />
+                    DL
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <div ref={thumbnailRef} className="w-[1280px] h-[670px]">
+                  <CharacterGlass
+                    title={imageData.thumbnail.title}
+                    subtitle={imageData.thumbnail.subtitle}
+                    characterImage={characterImage}
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* インフォグラフセクション */}
+            {imageData.infographics.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <BarChart3 className="w-5 h-5 text-cyan-400" />
+                    <h2 className="text-lg font-semibold">インフォグラフ</h2>
+                    <span className="text-xs text-gray-500">{imageData.infographics.length}枚</span>
+                  </div>
+                  <button
+                    onClick={downloadAllInfographics}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 transition-colors text-sm font-medium"
+                  >
+                    <Download className="w-4 h-4" />
+                    全てDL
+                  </button>
+                </div>
+
+                <div>
+                  {imageData.infographics.map((info, index) => (
+                    <div
+                      key={index}
+                      ref={(el) => { infographicRefs.current[index] = el; }}
+                    >
+                      {renderInfographic(info)}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-20 text-gray-500">
+            公開準備完了の記事がありません
           </div>
         )}
       </main>

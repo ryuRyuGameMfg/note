@@ -13,12 +13,13 @@ export interface ParsedArticle {
     headers: string[];
     rows: { label: string; values: (string | boolean)[] }[];
   };
-  proscons?: { 
+  proscons?: {
     title: string;
-    pros: string[]; 
-    cons: string[] 
+    pros: string[];
+    cons: string[]
   };
   stats?: { value: string; label: string; color: string }[];
+  beforeAfter?: { label: string; before: string; after: string }[];
   suggestedTemplates: {
     thumbnails: string[];
     infographics: string[];
@@ -207,6 +208,72 @@ export function parseMarkdown(content: string): ParsedArticle {
     }
   }
   
+  // ビフォーアフターデータの検出（「A → B」パターン）
+  let beforeAfter: ParsedArticle['beforeAfter'] | undefined;
+  const beforeAfterPatterns: { label: string; before: string; after: string }[] = [];
+
+  // 数字表記の正規化関数
+  const normalizeNumber = (text: string): string => {
+    return text
+      // 「数十個」→「30+個」
+      .replace(/数十個/g, '30+個')
+      .replace(/数十/g, '30+')
+      // 「数百」→「100+」
+      .replace(/数百/g, '100+')
+      // 「数千」→「1000+」
+      .replace(/数千/g, '1000+')
+      // 「3つ」→「3個」（単位統一）
+      .replace(/(\d+)つ/g, '$1個')
+      // 「3分の1」→「1/3」
+      .replace(/(\d+)分の(\d+)/g, '$2/$1')
+      // 「〜」→「-」（ハイフン統一）
+      .replace(/〜/g, '-');
+  };
+
+  // ラベルと値の重複を除去する関数
+  const cleanLabel = (label: string, before: string, after: string): string => {
+    // 値に含まれる単位がラベルにも含まれている場合、ラベルから除去
+    const units = ['時間', '日', '個', '件', '分'];
+    let cleanedLabel = label;
+    for (const unit of units) {
+      if ((before.includes(unit) || after.includes(unit)) && label.endsWith(unit)) {
+        cleanedLabel = label.slice(0, -unit.length);
+      }
+    }
+    return cleanedLabel || label;
+  };
+
+  // パターン1: 「〇〇：A → B」形式
+  const arrowPatterns = content.matchAll(/([^：:\n]+)[：:]([^\n→]+)\s*→\s*([^\n]+)/g);
+  for (const match of arrowPatterns) {
+    let label = match[1].replace(/\*\*/g, '').trim();
+    const before = normalizeNumber(match[2].replace(/\*\*/g, '').trim());
+    const after = normalizeNumber(match[3].replace(/\*\*/g, '').trim());
+    label = cleanLabel(label, before, after);
+    if (label.length < 30 && before.length < 20 && after.length < 20) {
+      beforeAfterPatterns.push({ label, before, after });
+    }
+  }
+
+  // パターン2: 「**A → B**」形式（太字で強調されているもの）
+  const boldArrowPatterns = content.matchAll(/\*\*([^*]+)\s*→\s*([^*]+)\*\*/g);
+  for (const match of boldArrowPatterns) {
+    const before = normalizeNumber(match[1].trim());
+    const after = normalizeNumber(match[2].trim());
+    // ラベルを推測
+    let label = '変化';
+    if (before.includes('個') || after.includes('個')) label = '数量';
+    else if (before.includes('日') || after.includes('時間') || before.includes('時間')) label = '所要時間';
+    else if (before.includes('/')) label = '効率';
+    if (before.length < 20 && after.length < 20) {
+      beforeAfterPatterns.push({ label, before, after });
+    }
+  }
+
+  if (beforeAfterPatterns.length >= 2) {
+    beforeAfter = beforeAfterPatterns.slice(0, 4);
+  }
+
   // おすすめテンプレートを決定
   const suggestedTemplates = {
     thumbnails: [] as string[],
@@ -265,6 +332,7 @@ export function parseMarkdown(content: string): ParsedArticle {
     comparisonData,
     proscons,
     stats,
+    beforeAfter,
     suggestedTemplates,
   };
 }

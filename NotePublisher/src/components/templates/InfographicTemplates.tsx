@@ -1,274 +1,167 @@
 'use client';
 
 import React from 'react';
-import { Check, X, TrendingUp, TrendingDown } from 'lucide-react';
+import { Check, X, TrendingUp, TrendingDown, Zap, Clock, Code, Layers, ArrowRight } from 'lucide-react';
 import { parseMarkdownText } from '@/lib/parseMarkdownText';
 
-// ==========================================
-// カラーパレット定義（REGULATIONS.md準拠）
-// ==========================================
+/**
+ * インフォグラフテンプレート設計指針
+ *
+ * 【サイズ】
+ * - 幅: 1280px固定（サムネイルと同じ）
+ * - 高さ: コンテンツにぴったりフィット
+ *
+ * 【デザイン原則】
+ * - ベントーデザイン統一: 四角カード + グラデーション + 透けるアイコン + 情報
+ * - ライトモード専用（白背景）
+ *
+ * 【カラーパレット（6色固定）】
+ * 1. Primary (青系): from-sky-500 to-blue-600
+ * 2. Secondary (ティール): from-teal-500 to-cyan-600
+ * 3. Neutral (スレート): from-slate-500 to-slate-600
+ * 4. Negative (コーラル): from-rose-400 to-rose-500
+ * 5. Positive (ミント): from-emerald-400 to-teal-500
+ * 6. Accent (アンバー): from-amber-400 to-orange-500
+ */
+
+// カラーパレット定義（6色固定）
 const COLORS = {
-  // 成功・メリット
-  success: {
-    dark: { bg: 'bg-green-900/20', border: 'border-green-500/30', text: 'text-green-400', icon: 'text-green-400' },
-    light: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', icon: 'text-green-600' }
-  },
-  // エラー・デメリット
-  error: {
-    dark: { bg: 'bg-red-900/20', border: 'border-red-500/30', text: 'text-red-400', icon: 'text-red-400' },
-    light: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', icon: 'text-red-600' }
-  },
-  // チェックマーク
-  check: { success: 'text-green-500', error: 'text-red-500' },
-  // 統計データデフォルトカラー
-  stats: ['#3b82f6', '#22c55e', '#f97316', '#a855f7', '#22d3ee', '#2563eb']
-} as const;
+  primary: 'from-sky-500 to-blue-600',
+  secondary: 'from-teal-500 to-cyan-600',
+  neutral: 'from-slate-500 to-slate-600',
+  negative: 'from-rose-400 to-rose-500',
+  positive: 'from-emerald-400 to-teal-500',
+  accent: 'from-amber-400 to-orange-500',
+};
+
+// グラデーション配列（統計カード用）
+const STAT_GRADIENTS = [
+  COLORS.primary,
+  COLORS.secondary,
+  COLORS.accent,
+  COLORS.neutral,
+  COLORS.positive,
+  COLORS.negative,
+];
 
 // ==========================================
-// 統一余白・サイズ定義
+// Template 1: ベントー型メリデメ
 // ==========================================
-const LAYOUT = {
-  width: 'w-[800px]',
-  minHeight: 'min-h-[600px]',
-  padding: 'p-12',
-  gap: 'gap-6',
-  titleSize: 'text-3xl',
-  textSize: 'text-base',
-  iconSize: 'w-6 h-6'
-} as const;
-
-// ==========================================
-// インフォグラフィック: 比較表
-// ==========================================
-export const ComparisonTable: React.FC<{
-  title: string;
-  headers: string[];
-  rows: { label: string; values: (string | boolean)[] }[];
-  darkMode?: boolean;
-}> = ({ title, headers, rows, darkMode = true }) => (
-  <div className={`${LAYOUT.width} ${LAYOUT.minHeight} ${LAYOUT.padding} flex flex-col ${
-    darkMode ? 'bg-gray-900' : 'bg-white'
-  }`}>
-    <h2 className={`${LAYOUT.titleSize} font-bold mb-6 ${
-      darkMode ? 'text-white' : 'text-gray-800'
-    }`}>{parseMarkdownText(title)}</h2>
-    
-    <div className={`border rounded-xl overflow-hidden flex-1 ${
-      darkMode ? 'border-gray-700' : 'border-gray-200'
-    }`}>
-      {/* ヘッダー */}
-      <div className={`grid ${
-        darkMode ? 'bg-gray-800' : 'bg-gray-100'
-      }`} style={{ gridTemplateColumns: `180px repeat(${headers.length}, 1fr)` }}>
-        <div className={`p-4 font-bold border-b border-r ${
-          darkMode ? 'text-gray-400 border-gray-700' : 'text-gray-600 border-gray-200'
-        }`}></div>
-        {headers.map((h, i) => (
-          <div key={i} className={`p-4 font-bold text-center border-b text-lg ${
-            darkMode ? 'text-white border-gray-700' : 'text-gray-800 border-gray-200'
-          }`}>
-            {parseMarkdownText(h)}
-          </div>
-        ))}
-      </div>
-      
-      {/* データ行 */}
-      {rows.map((row, i) => (
-        <div
-          key={i}
-          className="grid"
-          style={{ gridTemplateColumns: `180px repeat(${headers.length}, 1fr)` }}
-        >
-          <div className={`p-4 font-medium border-r ${i < rows.length - 1 ? 'border-b' : ''} ${LAYOUT.textSize} ${
-            darkMode ? 'text-gray-300 border-gray-700' : 'text-gray-700 border-gray-200'
-          }`}>
-            {parseMarkdownText(row.label)}
-          </div>
-          {row.values.map((v, j) => (
-            <div key={j} className={`p-4 flex items-center justify-center ${i < rows.length - 1 ? 'border-b' : ''} ${
-              darkMode ? 'border-gray-700' : 'border-gray-200'
-            }`}>
-              {typeof v === 'boolean' ? (
-                v ? (
-                  <Check className={`${LAYOUT.iconSize} ${COLORS.check.success}`} strokeWidth={3} />
-                ) : (
-                  <X className={`${LAYOUT.iconSize} ${COLORS.check.error}`} strokeWidth={3} />
-                )
-              ) : (
-                <span className={`${LAYOUT.textSize} ${
-                  darkMode ? 'text-gray-200' : 'text-gray-700'
-                }`}>{parseMarkdownText(v)}</span>
-              )}
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-// ==========================================
-// インフォグラフィック: メリット・デメリット
-// ==========================================
-export const ProsCons: React.FC<{
+export const GlassProsCons: React.FC<{
   title: string;
   pros: string[];
   cons: string[];
   darkMode?: boolean;
-}> = ({ title, pros, cons, darkMode = true }) => (
-  <div className={`${LAYOUT.width} ${LAYOUT.minHeight} ${LAYOUT.padding} flex flex-col ${
-    darkMode ? 'bg-gray-900' : 'bg-gray-50'
-  }`}>
-    <h2 className={`${LAYOUT.titleSize} font-bold mb-8 text-center ${
-      darkMode ? 'text-white' : 'text-gray-800'
-    }`}>{parseMarkdownText(title)}</h2>
-    
-    <div className={`flex ${LAYOUT.gap} flex-1`}>
-      {/* メリット */}
-      <div className={`flex-1 rounded-xl p-6 border-2 flex flex-col ${
-        darkMode 
-          ? `${COLORS.success.dark.bg} ${COLORS.success.dark.border}` 
-          : `${COLORS.success.light.bg} ${COLORS.success.light.border}`
-      }`}>
-        <h3 className={`text-xl font-bold mb-4 flex items-center gap-2 ${
-          darkMode ? COLORS.success.dark.text : COLORS.success.light.text
-        }`}>
-          <TrendingUp className={LAYOUT.iconSize} />
-          メリット
-        </h3>
-        <ul className="space-y-3 flex-1">
-          {pros.map((pro, i) => (
-            <li key={i} className={`flex items-start gap-2 ${LAYOUT.textSize} ${
-              darkMode ? 'text-gray-200' : 'text-gray-700'
-            }`}>
-              <Check className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                darkMode ? COLORS.success.dark.icon : COLORS.success.light.icon
-              }`} strokeWidth={2} />
-              <span>{parseMarkdownText(pro)}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-      
-      {/* デメリット */}
-      <div className={`flex-1 rounded-xl p-6 border-2 flex flex-col ${
-        darkMode 
-          ? `${COLORS.error.dark.bg} ${COLORS.error.dark.border}` 
-          : `${COLORS.error.light.bg} ${COLORS.error.light.border}`
-      }`}>
-        <h3 className={`text-xl font-bold mb-4 flex items-center gap-2 ${
-          darkMode ? COLORS.error.dark.text : COLORS.error.light.text
-        }`}>
-          <TrendingDown className={LAYOUT.iconSize} />
-          デメリット
-        </h3>
-        <ul className="space-y-3 flex-1">
-          {cons.map((con, i) => (
-            <li key={i} className={`flex items-start gap-2 ${LAYOUT.textSize} ${
-              darkMode ? 'text-gray-200' : 'text-gray-700'
-            }`}>
-              <X className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                darkMode ? COLORS.error.dark.icon : COLORS.error.light.icon
-              }`} strokeWidth={2} />
-              <span>{parseMarkdownText(con)}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  </div>
-);
+}> = ({ title, pros, cons }) => {
+  const maxItems = Math.max(pros.length, cons.length);
+  const itemHeight = 52;
+  const headerHeight = 76;
+  const titleHeight = 70;
+  const padding = 76;
+  const cardPadding = 64;
+  const calculatedHeight = titleHeight + headerHeight + (maxItems * itemHeight) + cardPadding + padding;
 
-// ==========================================
-// インフォグラフィック: 統計データ
-// ==========================================
-export const StatsInfographic: React.FC<{
-  title: string;
-  stats: { value: string; label: string; subtext?: string; color?: string }[];
-  darkMode?: boolean;
-}> = ({ title, stats, darkMode = true }) => (
-  <div className={`${LAYOUT.width} ${LAYOUT.minHeight} ${LAYOUT.padding} flex flex-col ${
-    darkMode ? 'bg-gray-900' : 'bg-white'
-  }`}>
-    <h2 className={`${LAYOUT.titleSize} font-bold mb-8 ${
-      darkMode ? 'text-white' : 'text-gray-800'
-    }`}>{parseMarkdownText(title)}</h2>
-    
-    <div className="grid grid-cols-3 gap-6 flex-1 content-start">
-      {stats.map((stat, i) => {
-        const color = stat.color || COLORS.stats[i % COLORS.stats.length];
-        return (
-          <div
-            key={i}
-            className={`rounded-xl p-6 text-center flex flex-col justify-center ${
-              darkMode ? 'bg-gray-800' : 'bg-gray-50'
-            }`}
-            style={{ borderTop: `4px solid ${color}` }}
-          >
-            <div
-              className="text-4xl font-black mb-3"
-              style={{ color }}
-            >
-              {parseMarkdownText(stat.value)}
-            </div>
-            <div className={`text-lg font-semibold ${
-              darkMode ? 'text-white' : 'text-gray-800'
-            }`}>{parseMarkdownText(stat.label)}</div>
-            {stat.subtext && (
-              <div className={`text-sm mt-2 ${
-                darkMode ? 'text-gray-400' : 'text-gray-600'
-              }`}>{parseMarkdownText(stat.subtext)}</div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  </div>
-);
-
-// ==========================================
-// インフォグラフィック: バーチャート
-// ==========================================
-export const BarChart: React.FC<{
-  title: string;
-  bars: { label: string; value: number; color?: string }[];
-  maxValue?: number;
-  darkMode?: boolean;
-}> = ({ title, bars, maxValue, darkMode = true }) => {
-  const max = maxValue || Math.max(...bars.map((b) => b.value));
-  
   return (
-    <div className={`${LAYOUT.width} ${LAYOUT.minHeight} ${LAYOUT.padding} flex flex-col ${
-      darkMode ? 'bg-gray-900' : 'bg-gray-50'
-    }`}>
-      <h2 className={`${LAYOUT.titleSize} font-bold mb-8 ${
-        darkMode ? 'text-white' : 'text-gray-800'
-      }`}>{parseMarkdownText(title)}</h2>
-      
-      <div className="space-y-5 flex-1 flex flex-col justify-center">
-        {bars.map((bar, i) => {
-          const color = bar.color || COLORS.stats[i % COLORS.stats.length];
+    <div
+      className="w-[1280px] p-10 bg-white"
+      style={{ height: `${calculatedHeight}px` }}
+    >
+      <h2 className="text-3xl font-bold mb-6 text-gray-900">
+        {parseMarkdownText(title)}
+      </h2>
+
+      <div className="grid grid-cols-2 gap-3">
+        {/* メリット - ベントーカード */}
+        <div className={`rounded-3xl p-8 bg-gradient-to-br ${COLORS.positive} relative overflow-hidden`}>
+          <div className="absolute -bottom-10 -right-10 opacity-10">
+            <TrendingUp className="w-44 h-44 text-white" />
+          </div>
+          <div className="flex items-center gap-3 mb-5 text-white relative z-10">
+            <TrendingUp className="w-8 h-8" />
+            <span className="font-bold text-xl">メリット</span>
+          </div>
+          <ul className="space-y-3 relative z-10">
+            {pros.map((pro, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <Check className="w-6 h-6 mt-0.5 flex-shrink-0 text-white/80" strokeWidth={2.5} />
+                <span className="text-lg leading-snug text-white/90">
+                  {parseMarkdownText(pro)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* デメリット - ベントーカード */}
+        <div className={`rounded-3xl p-8 bg-gradient-to-br ${COLORS.negative} relative overflow-hidden`}>
+          <div className="absolute -bottom-10 -right-10 opacity-10">
+            <TrendingDown className="w-44 h-44 text-white" />
+          </div>
+          <div className="flex items-center gap-3 mb-5 text-white relative z-10">
+            <TrendingDown className="w-8 h-8" />
+            <span className="font-bold text-xl">デメリット</span>
+          </div>
+          <ul className="space-y-3 relative z-10">
+            {cons.map((con, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <X className="w-6 h-6 mt-0.5 flex-shrink-0 text-white/80" strokeWidth={2.5} />
+                <span className="text-lg leading-snug text-white/90">
+                  {parseMarkdownText(con)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// Template 2: ベントー型統計データ
+// ==========================================
+export const MinimalStats: React.FC<{
+  title: string;
+  stats: { value: string; label: string; color?: string }[];
+  darkMode?: boolean;
+}> = ({ title, stats }) => {
+  const icons = [Zap, Clock, Code, Layers, TrendingUp, Check];
+  const displayStats = stats.slice(0, 6);
+  const cols = Math.min(displayStats.length, 3);
+  const rows = Math.ceil(displayStats.length / 3);
+
+  const cardHeight = 140;
+  const titleHeight = 70;
+  const padding = 76;
+  const gap = 20;
+  const calculatedHeight = titleHeight + (rows * cardHeight) + ((rows - 1) * gap) + padding;
+
+  return (
+    <div
+      className="w-[1280px] p-10 bg-white"
+      style={{ height: `${calculatedHeight}px` }}
+    >
+      <h2 className="text-3xl font-bold mb-6 text-gray-900">
+        {parseMarkdownText(title)}
+      </h2>
+
+      <div className="gap-5" style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+        {displayStats.map((stat, i) => {
+          const Icon = icons[i % icons.length];
           return (
-            <div key={i} className="flex items-center gap-5">
-              <div className={`w-32 text-right ${LAYOUT.textSize} font-medium ${
-                darkMode ? 'text-gray-300' : 'text-gray-700'
-              }`}>
-                {parseMarkdownText(bar.label)}
+            <div
+              key={i}
+              className={`rounded-3xl p-6 bg-gradient-to-br ${STAT_GRADIENTS[i % STAT_GRADIENTS.length]} relative overflow-hidden`}
+            >
+              <div className="absolute -bottom-5 -right-5 opacity-10">
+                <Icon className="w-24 h-24 text-white" />
               </div>
-              <div className={`flex-1 rounded-full h-8 overflow-hidden ${
-                darkMode ? 'bg-gray-800' : 'bg-gray-200'
-              }`}>
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{
-                    width: `${(bar.value / max) * 100}%`,
-                    backgroundColor: color,
-                  }}
-                />
+              <div className="text-base text-white/70 mb-2 relative z-10">
+                {parseMarkdownText(stat.label)}
               </div>
-              <div className={`w-16 ${LAYOUT.textSize} font-bold ${
-                darkMode ? 'text-white' : 'text-gray-800'
-              }`}>{bar.value}</div>
+              <div className="text-4xl font-black text-white relative z-10">
+                {parseMarkdownText(stat.value)}
+              </div>
             </div>
           );
         })}
@@ -277,9 +170,214 @@ export const BarChart: React.FC<{
   );
 };
 
+// ==========================================
+// Template 3: ベントー型比較表
+// ==========================================
+export const FloatingComparison: React.FC<{
+  title: string;
+  headers: string[];
+  rows: { label: string; values: (string | boolean)[] }[];
+  darkMode?: boolean;
+}> = ({ title, headers, rows }) => {
+  const displayRows = rows.slice(0, 8);
+  const rowHeight = 70;
+  const headerHeight = 70;
+  const titleHeight = 70;
+  const padding = 116;
+  const calculatedHeight = titleHeight + headerHeight + (displayRows.length * rowHeight) + padding;
+
+  return (
+    <div
+      className="w-[1280px] p-10 bg-white"
+      style={{ height: `${calculatedHeight}px` }}
+    >
+      <h2 className="text-3xl font-bold mb-6 text-gray-900">
+        {parseMarkdownText(title)}
+      </h2>
+
+      <div className="rounded-3xl overflow-hidden shadow-sm">
+        {/* ヘッダー - ベントーカードスタイル */}
+        <div
+          className={`grid bg-gradient-to-r ${COLORS.primary} relative overflow-hidden`}
+          style={{ gridTemplateColumns: `220px repeat(${headers.length}, 1fr)` }}
+        >
+          <div className="absolute -bottom-6 -right-6 opacity-10">
+            <Layers className="w-32 h-32 text-white" />
+          </div>
+          <div className="p-5" />
+          {headers.map((h, i) => (
+            <div key={i} className="p-5 font-bold text-center text-xl text-white relative z-10">
+              {parseMarkdownText(h)}
+            </div>
+          ))}
+        </div>
+
+        {/* データ行 */}
+        {displayRows.map((row, i) => (
+          <div
+            key={i}
+            className={`grid ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
+            style={{ gridTemplateColumns: `220px repeat(${headers.length}, 1fr)` }}
+          >
+            <div className="p-5 font-medium text-lg text-gray-700 border-r border-gray-100">
+              {parseMarkdownText(row.label)}
+            </div>
+            {row.values.map((v, j) => (
+              <div key={j} className="p-5 flex items-center justify-center">
+                {typeof v === 'boolean' ? (
+                  v ? (
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <Check className="w-6 h-6 text-emerald-600" strokeWidth={3} />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+                      <X className="w-6 h-6 text-gray-400" strokeWidth={3} />
+                    </div>
+                  )
+                ) : (
+                  <span className="text-lg text-gray-700">
+                    {parseMarkdownText(v)}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// Template 4: 横長ベントー型統計カード
+// ==========================================
+export const HorizontalBentoStats: React.FC<{
+  title?: string;
+  stats: { value: string; label: string; color?: string }[];
+  darkMode?: boolean;
+}> = ({ title, stats }) => {
+  const icons = [Layers, Code, Zap, TrendingUp];
+  const displayStats = stats.slice(0, 4);
+
+  const cardHeight = 128;
+  const titleHeight = title ? 64 : 0;
+  const padding = 76;
+  const calculatedHeight = titleHeight + cardHeight + padding;
+
+  return (
+    <div
+      className="w-[1280px] p-10 bg-white"
+      style={{ height: `${calculatedHeight}px` }}
+    >
+      {title && (
+        <h2 className="text-2xl font-bold mb-5 text-gray-900">
+          {parseMarkdownText(title)}
+        </h2>
+      )}
+
+      <div className="grid grid-cols-4 gap-5">
+        {displayStats.map((stat, i) => {
+          const Icon = icons[i % icons.length];
+          return (
+            <div
+              key={i}
+              className={`rounded-2xl p-6 bg-gradient-to-br ${STAT_GRADIENTS[i % STAT_GRADIENTS.length]} relative overflow-hidden`}
+            >
+              <div className="absolute -bottom-3 -right-3 opacity-10">
+                <Icon className="w-20 h-20 text-white" />
+              </div>
+              <div className="text-base text-white/70 mb-2 relative z-10">
+                {parseMarkdownText(stat.label)}
+              </div>
+              <div className="text-3xl font-black text-white relative z-10">
+                {parseMarkdownText(stat.value)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// Template 5: ビフォーアフター（改善版）
+// ==========================================
+export const BeforeAfterStats: React.FC<{
+  title: string;
+  items: { label: string; before: string; after: string }[];
+  darkMode?: boolean;
+}> = ({ title, items }) => {
+  const displayItems = items.slice(0, 4);
+  const itemHeight = 90;
+  const titleHeight = 70;
+  const headerHeight = 52;
+  const padding = 76;
+  const gap = 12;
+  const calculatedHeight = titleHeight + headerHeight + (displayItems.length * itemHeight) + ((displayItems.length - 1) * gap) + padding;
+
+  return (
+    <div
+      className="w-[1280px] p-10 bg-white"
+      style={{ height: `${calculatedHeight}px` }}
+    >
+      <h2 className="text-3xl font-bold mb-5 text-gray-900 flex items-center gap-3">
+        <Zap className="w-8 h-8 text-sky-500" />
+        {parseMarkdownText(title)}
+      </h2>
+
+      {/* ヘッダーラベル */}
+      <div className="grid grid-cols-[220px_1fr_52px_1fr] gap-4 mb-4 text-base text-gray-500 font-medium">
+        <div></div>
+        <div className="text-center">BEFORE</div>
+        <div></div>
+        <div className="text-center">AFTER</div>
+      </div>
+
+      <div className="space-y-3">
+        {displayItems.map((item, i) => (
+          <div key={i} className="grid grid-cols-[220px_1fr_52px_1fr] gap-4 items-center">
+            {/* ラベル */}
+            <div className="text-lg text-gray-700 font-medium">
+              {parseMarkdownText(item.label)}
+            </div>
+
+            {/* Before - ベントーカード */}
+            <div className={`rounded-2xl px-6 py-5 bg-gradient-to-br ${COLORS.negative} relative overflow-hidden`}>
+              <div className="absolute -bottom-2 -right-2 opacity-10">
+                <X className="w-12 h-12 text-white" />
+              </div>
+              <div className="text-center text-white font-bold text-2xl relative z-10">
+                {parseMarkdownText(item.before)}
+              </div>
+            </div>
+
+            {/* 矢印 */}
+            <div className={`rounded-xl py-4 bg-gradient-to-br ${COLORS.primary} flex items-center justify-center`}>
+              <ArrowRight className="w-6 h-6 text-white" />
+            </div>
+
+            {/* After - ベントーカード */}
+            <div className={`rounded-2xl px-6 py-5 bg-gradient-to-br ${COLORS.positive} relative overflow-hidden`}>
+              <div className="absolute -bottom-2 -right-2 opacity-10">
+                <Check className="w-12 h-12 text-white" />
+              </div>
+              <div className="text-center text-white font-bold text-2xl relative z-10">
+                {parseMarkdownText(item.after)}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// テンプレート一覧
 export const infographicTemplates = [
-  { id: 'comparison-table', name: '比較表', component: ComparisonTable },
-  { id: 'pros-cons', name: 'メリット・デメリット', component: ProsCons },
-  { id: 'stats', name: '統計データ', component: StatsInfographic },
-  { id: 'bar-chart', name: '棒グラフ', component: BarChart },
+  { id: 'glass-proscons', name: 'メリデメ', component: GlassProsCons },
+  { id: 'minimal-stats', name: '統計', component: MinimalStats },
+  { id: 'floating-comparison', name: '比較表', component: FloatingComparison },
+  { id: 'horizontal-bento', name: '横ベントー', component: HorizontalBentoStats },
+  { id: 'before-after', name: 'ビフォアフ', component: BeforeAfterStats },
 ];
