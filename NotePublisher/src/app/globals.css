@@ -2,6 +2,35 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* カスタムフォント */
+@font-face {
+  font-family: 'HackGen';
+  src: url('/fonts/HackGen-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'HackGen';
+  src: url('/fonts/HackGen-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Melete';
+  src: url('/fonts/Melete-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Melete';
+  src: url('/fonts/Melete-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
 :root {
   /* note推奨サイズ */
   --thumbnail-width: 1280px;

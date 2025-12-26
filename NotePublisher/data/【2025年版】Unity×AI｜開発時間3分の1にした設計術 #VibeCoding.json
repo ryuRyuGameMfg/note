@@ -1,0 +1,88 @@
+{
+  "thumbnail": {
+    "title": "\\2025年版/\nUnity×AI開発\n開発時間3分の1の設計術",
+    "subtitle": "#VibeCoding",
+    "characterImage": "/characters/dragon.png"
+  },
+  "infographics": [
+    {
+      "type": "heading",
+      "title": "AIでUnity開発、\n本当に速くなった？",
+      "subtitle": "コード10分で完成→設定作業6時間の現実",
+      "icon": "question"
+    },
+    {
+      "type": "comparison",
+      "title": "Web開発との決定的な違い",
+      "headers": ["Web開発", "Unity開発"],
+      "rows": [
+        { "label": "コードで完結", "values": [true, false] },
+        { "label": "手作業", "values": ["少ない", "多い"] },
+        { "label": "AI活用", "values": ["容易", "工夫が必要"] }
+      ]
+    },
+    {
+      "type": "heading",
+      "title": "解決の鍵は\n「Pure C#」だった",
+      "subtitle": "MonoBehaviourを減らすという発想",
+      "icon": "lightbulb"
+    },
+    {
+      "type": "proscons",
+      "title": "Pure C#って何？",
+      "pros": [
+        "AIが書いたコードをそのまま使える",
+        "Unityを開かずにテストできる",
+        "設定作業が激減する"
+      ],
+      "cons": [
+        "既存プロジェクトは設計変更が必要",
+        "最初に考え方を理解する必要あり"
+      ]
+    },
+    {
+      "type": "heading",
+      "title": "この分業を徹底したら\nどうなった？",
+      "subtitle": "実際にAIキャラクターアプリで試してみた",
+      "icon": "fire"
+    },
+    {
+      "type": "beforeAfter",
+      "title": "こう変わった",
+      "items": [
+        { "label": "アタッチ作業", "before": "30〜50個", "after": "3個" },
+        { "label": "開発スピード", "before": "3日", "after": "1日" }
+      ]
+    },
+    {
+      "type": "heading",
+      "title": "人間とAI、\nどう分ける？",
+      "subtitle": "上流は人間、中流〜下流はAI",
+      "icon": "handshake"
+    },
+    {
+      "type": "comparison",
+      "title": "誰が何をやる？",
+      "headers": ["人間", "AI"],
+      "rows": [
+        { "label": "Unity設定", "values": [true, false] },
+        { "label": "ロジック実装", "values": [false, true] },
+        { "label": "テスト", "values": [false, true] }
+      ]
+    },
+    {
+      "type": "heading",
+      "title": "続きはあなた次第",
+      "subtitle": "反響があれば、プロンプトやスキル設定を公開します",
+      "icon": "wave"
+    },
+    {
+      "type": "stats",
+      "title": "筆者の実績",
+      "stats": [
+        { "value": "260件+", "label": "総取引数" },
+        { "value": "プラチナ", "label": "ココナラランク" }
+      ]
+    }
+  ]
+}

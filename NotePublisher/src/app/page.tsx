@@ -6,11 +6,13 @@ import { ChevronDown, Download, Image, BarChart3 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { CharacterGlass } from '@/components/templates/ThumbnailTemplates';
 import {
+  HeadingBanner,
   GlassProsCons,
   MinimalStats,
   FloatingComparison,
   HorizontalBentoStats,
   BeforeAfterStats,
+  CtaBanner,
 } from '@/components/templates/InfographicTemplates';
 
 interface Article {
@@ -33,6 +35,7 @@ interface ImageData {
     | { type: 'comparison'; title: string; headers: string[]; rows: { label: string; values: (string | boolean)[] }[] }
     | { type: 'beforeAfter'; title: string; items: { label: string; before: string; after: string }[] }
     | { type: 'horizontalStats'; title?: string; stats: { value: string; label: string }[] }
+    | { type: 'cta'; title: string; subtitle?: string; url?: string }
   >;
 }
 
@@ -62,6 +65,13 @@ export default function Home() {
       fetchImageData(selectedArticle.filename);
     }
   }, [selectedArticle]);
+
+  // インフォグラフィックの数が変わったらrefsを初期化
+  useEffect(() => {
+    if (imageData?.infographics) {
+      infographicRefs.current = imageData.infographics.map(() => null);
+    }
+  }, [imageData?.infographics?.length]);
 
   const fetchArticles = async () => {
     setLoading(true);
@@ -124,23 +134,24 @@ export default function Home() {
       const link = document.createElement('a');
       link.download = filename;
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Failed to download:', error);
     }
   };
 
-  const downloadAllInfographics = async () => {
-    for (let i = 0; i < infographicRefs.current.length; i++) {
-      const ref = infographicRefs.current[i];
-      if (ref) {
-        await downloadImage(ref, `infographic-${i + 1}-${Date.now()}.png`);
-      }
-    }
-  };
-
   const renderInfographic = (info: ImageData['infographics'][0]) => {
     switch (info.type) {
+      case 'heading':
+        return (
+          <HeadingBanner
+            title={info.title}
+            subtitle={info.subtitle}
+            icon={info.icon}
+          />
+        );
       case 'proscons':
         return (
           <GlassProsCons
@@ -178,6 +189,14 @@ export default function Home() {
             stats={info.stats.map(s => ({ ...s, color: '' }))}
           />
         );
+      case 'cta':
+        return (
+          <CtaBanner
+            title={info.title}
+            subtitle={info.subtitle}
+            url={info.url}
+          />
+        );
       default:
         return null;
     }
@@ -185,21 +204,21 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* ヘッダー */}
-      <header className="border-b border-white/10 backdrop-blur-xl bg-gray-950/80 sticky top-0 z-50">
+      <header className="border-b border-gray-200 backdrop-blur-xl bg-white/80 sticky top-0 z-50">
         <div className="max-w-[1400px] mx-auto px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
-                <Image className="w-5 h-5" />
+                <Image className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h1 className="text-xl font-bold">NotePublisher</h1>
@@ -211,9 +230,9 @@ export default function Home() {
             <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                  className="flex items-center gap-3 px-5 py-3 rounded-xl bg-gray-100 border border-gray-200 hover:bg-gray-200 transition-all"
                 >
-                  <span className="text-sm text-gray-300 max-w-[400px] truncate">
+                  <span className="text-sm text-gray-700 max-w-[400px] truncate">
                     {selectedArticle?.title || '記事を選択'}
                   </span>
                   <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -225,13 +244,13 @@ export default function Home() {
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="absolute right-0 top-full mt-2 w-[500px] max-h-[400px] overflow-y-auto rounded-xl bg-gray-900 border border-white/10 shadow-2xl z-50"
+                      className="absolute right-0 top-full mt-2 w-[500px] max-h-[400px] overflow-y-auto rounded-xl bg-white border border-gray-200 shadow-xl z-50"
                     >
                       {articles.map((article) => (
                         <button
                           key={article.id}
                           onClick={() => selectArticle(article)}
-                          className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                          className="w-full px-4 py-3 text-left text-sm hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-0"
                         >
                           <span className="line-clamp-2">{article.title}</span>
                         </button>
@@ -244,14 +263,14 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-[1400px] mx-auto px-8 py-8">
+      <main className="px-8 py-8 overflow-x-auto">
         {imageData ? (
-          <div className="space-y-12">
+          <div className="space-y-12 w-[1280px] mx-auto">
             {/* サムネイルセクション */}
             <section>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4 w-[1280px]">
                 <div className="flex items-center gap-3">
-                  <Image className="w-5 h-5 text-cyan-400" />
+                  <Image className="w-5 h-5 text-cyan-500" />
                   <h2 className="text-lg font-semibold">サムネイル</h2>
                   <span className="text-xs text-gray-500">1280 x 670px</span>
                 </div>
@@ -264,7 +283,7 @@ export default function Home() {
                         className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
                           characterImage === preset.url
                             ? 'bg-cyan-500 text-white'
-                            : 'bg-white/5 hover:bg-white/10 text-gray-400'
+                            : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
                         }`}
                       >
                         {preset.name}
@@ -272,8 +291,8 @@ export default function Home() {
                     ))}
                   </div>
                   <button
-                    onClick={() => downloadImage(thumbnailRef, `thumbnail-${Date.now()}.png`)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 transition-colors text-sm font-medium"
+                    onClick={() => downloadImage(thumbnailRef, 'サムネイル.png')}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 transition-colors text-sm font-medium text-white"
                   >
                     <Download className="w-4 h-4" />
                     DL
@@ -281,42 +300,51 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <div ref={thumbnailRef} className="w-[1280px] h-[670px]">
-                  <CharacterGlass
-                    title={imageData.thumbnail.title}
-                    subtitle={imageData.thumbnail.subtitle}
-                    characterImage={characterImage}
-                  />
-                </div>
+              <div ref={thumbnailRef} className="w-[1280px] h-[670px] overflow-hidden">
+                <CharacterGlass
+                  title={imageData.thumbnail.title}
+                  subtitle={imageData.thumbnail.subtitle}
+                  characterImage={characterImage}
+                />
               </div>
             </section>
 
             {/* インフォグラフセクション */}
             {imageData.infographics.length > 0 && (
               <section>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <BarChart3 className="w-5 h-5 text-cyan-400" />
-                    <h2 className="text-lg font-semibold">インフォグラフ</h2>
-                    <span className="text-xs text-gray-500">{imageData.infographics.length}枚</span>
-                  </div>
-                  <button
-                    onClick={downloadAllInfographics}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 transition-colors text-sm font-medium"
-                  >
-                    <Download className="w-4 h-4" />
-                    全てDL
-                  </button>
+                <div className="flex items-center gap-3 mb-4">
+                  <BarChart3 className="w-5 h-5 text-cyan-500" />
+                  <h2 className="text-lg font-semibold">インフォグラフ</h2>
+                  <span className="text-xs text-gray-500">{imageData.infographics.length}枚</span>
                 </div>
 
-                <div>
+                <div className="space-y-6">
                   {imageData.infographics.map((info, index) => (
-                    <div
-                      key={index}
-                      ref={(el) => { infographicRefs.current[index] = el; }}
-                    >
-                      {renderInfographic(info)}
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center justify-between w-[1280px]">
+                        <span className="text-sm text-gray-600">
+                          {index + 1}. {info.type === 'heading' ? '見出しバナー' :
+                                        info.type === 'proscons' ? 'メリット・デメリット' :
+                                        info.type === 'stats' ? '統計データ' :
+                                        info.type === 'comparison' ? '比較表' :
+                                        info.type === 'beforeAfter' ? 'Before/After' :
+                                        info.type === 'horizontalStats' ? '横並び統計' :
+                                        info.type === 'cta' ? 'CTA' : info.type}
+                        </span>
+                        <button
+                          onClick={() => downloadImage(infographicRefs.current[index], `インフォグラフ${String(index + 1).padStart(2, '0')}.png`)}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 transition-colors text-xs font-medium text-white"
+                        >
+                          <Download className="w-3 h-3" />
+                          DL
+                        </button>
+                      </div>
+                      <div
+                        ref={(el) => { infographicRefs.current[index] = el; }}
+                        className="w-[1280px] overflow-hidden"
+                      >
+                        {renderInfographic(info)}
+                      </div>
                     </div>
                   ))}
                 </div>

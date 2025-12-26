@@ -1,0 +1,48 @@
+{
+  "thumbnail": {
+    "title": "外国人が来ても慌てない\nAIキャラクターが接客する時代",
+    "subtitle": "多言語対応・24時間稼働で人手不足を解決",
+    "characterImage": "/characters/witch.png"
+  },
+  "infographics": [
+    {
+      "type": "beforeAfter",
+      "title": "AIキャラクター導入効果",
+      "items": [
+        { "label": "外国人対応", "before": "翻訳アプリ頼み", "after": "自動で多言語" },
+        { "label": "対応時間", "before": "営業時間のみ", "after": "24時間対応" },
+        { "label": "人件費", "before": "スタッフ増員", "after": "初期費用のみ" }
+      ]
+    },
+    {
+      "type": "proscons",
+      "title": "AIキャラクター接客のメリット・デメリット",
+      "pros": [
+        "多言語対応（英語・中国語など）",
+        "24時間稼働・休憩不要",
+        "人件費削減",
+        "一貫した接客品質"
+      ],
+      "cons": [
+        "Windows OSのみ対応",
+        "複雑な対応は人間が必要",
+        "初期導入コストがかかる"
+      ]
+    },
+    {
+      "type": "stats",
+      "title": "料金プラン（25%オフ適用）",
+      "stats": [
+        { "value": "7.5万円〜", "label": "ライトプラン" },
+        { "value": "20万円〜", "label": "スタンダード" },
+        { "value": "35万円〜", "label": "プレミアム" }
+      ]
+    },
+    {
+      "type": "cta",
+      "title": "AIキャラクターで接客を自動化",
+      "subtitle": "多言語対応・24時間稼働のAI接客システム",
+      "url": "coconala.com/services/3598037"
+    }
+  ]
+}

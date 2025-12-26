@@ -7,9 +7,9 @@ interface TemplateProps {
   subtitle?: string;
 }
 
-// タイトルを【】で分割して改行
+// タイトルをそのまま返す（JSONの改行を使用）
 const formatTitle = (title: string) => {
-  return title.replace(/】/g, '】\n');
+  return title;
 };
 
 // ==========================================
@@ -215,10 +215,19 @@ export const CharacterGlass: React.FC<TemplateProps & { characterImage?: string 
       </div>
     )}
 
-    {/* グラスカード（右側・テキストは左寄せ・左端固定で右に拡大） */}
-    <div className="absolute left-[470px] right-8 top-1/2 -translate-y-1/2 z-10">
-      <div className="backdrop-blur-xl bg-white/20 border border-white/30 rounded-3xl p-10 shadow-2xl">
-        <h1 className="text-4xl font-bold text-white leading-tight whitespace-pre-line drop-shadow-lg">
+    {/* グラスカード（キャラあり：右側配置、なし：中央配置） */}
+    <div className={`absolute top-1/2 -translate-y-1/2 z-10 ${
+      characterImage
+        ? 'left-[470px] right-8'
+        : 'left-8 right-8'
+    }`}>
+      <div className={`backdrop-blur-xl bg-white/20 border border-white/30 rounded-3xl p-10 shadow-2xl ${
+        characterImage ? '' : 'text-center'
+      }`}>
+        <h1
+          className="text-7xl font-bold text-white leading-none whitespace-pre-line drop-shadow-lg"
+          style={{ fontFamily: "'HackGen', sans-serif" }}
+        >
           {formatTitle(title)}
         </h1>
         {subtitle && (

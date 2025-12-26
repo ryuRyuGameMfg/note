@@ -22,7 +22,7 @@ export/         エクスポート用
 ```bash
 cd NotePublisher
 npm run dev
-# http://localhost:4003
+# http://localhost:3010
 ```
 
 ## AI向け

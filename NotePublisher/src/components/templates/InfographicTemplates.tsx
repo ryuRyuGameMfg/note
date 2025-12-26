@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Check, X, TrendingUp, TrendingDown, Zap, Clock, Code, Layers, ArrowRight } from 'lucide-react';
+import { Check, X, TrendingUp, TrendingDown, Zap, Clock, Code, Layers, ArrowRight, Sparkles, HelpCircle, Lightbulb, Flame, Handshake, Hand } from 'lucide-react';
 import { parseMarkdownText } from '@/lib/parseMarkdownText';
 
 /**
@@ -9,11 +9,13 @@ import { parseMarkdownText } from '@/lib/parseMarkdownText';
  *
  * 【サイズ】
  * - 幅: 1280px固定（サムネイルと同じ）
- * - 高さ: コンテンツにぴったりフィット
+ * - 高さ: コンテンツにぴったりフィット（従来の1.5倍）
  *
  * 【デザイン原則】
  * - ベントーデザイン統一: 四角カード + グラデーション + 透けるアイコン + 情報
- * - ライトモード専用（白背景）
+ * - ダイナミックなアイコン表示
+ * - 余白は小さめ、情報を大きく
+ * - スマホでも読めるフォントサイズ
  *
  * 【カラーパレット（6色固定）】
  * 1. Primary (青系): from-sky-500 to-blue-600
@@ -44,6 +46,61 @@ const STAT_GRADIENTS = [
   COLORS.negative,
 ];
 
+// アイコンマッピング
+const HEADING_ICONS: Record<string, React.FC<{ className?: string; strokeWidth?: number }>> = {
+  question: HelpCircle,
+  lightbulb: Lightbulb,
+  fire: Flame,
+  handshake: Handshake,
+  wave: Hand,
+  zap: Zap,
+  sparkles: Sparkles,
+  trending: TrendingUp,
+  code: Code,
+  layers: Layers,
+};
+
+// ==========================================
+// Template 0: 見出しバナー（新規追加）
+// ==========================================
+export const HeadingBanner: React.FC<{
+  title: string;
+  subtitle?: string;
+  icon?: string;
+  darkMode?: boolean;
+}> = ({ title, subtitle, icon = 'zap' }) => {
+  const IconComponent = HEADING_ICONS[icon] || Zap;
+
+  return (
+    <div
+      className={`w-[1280px] h-[320px] p-12 bg-gradient-to-br ${COLORS.primary} relative overflow-hidden flex items-center`}
+    >
+      <div className="absolute -bottom-16 -right-16 opacity-15">
+        <Sparkles className="w-80 h-80 text-white" />
+      </div>
+
+      {/* アイコン */}
+      <div className="flex-shrink-0 mr-10 relative z-10">
+        <div className="w-32 h-32 rounded-3xl bg-white/20 flex items-center justify-center">
+          <IconComponent className="w-20 h-20 text-white" strokeWidth={2} />
+        </div>
+      </div>
+
+      {/* テキスト */}
+      <div className="relative z-10 flex-1">
+        <h2 className="text-5xl font-black text-white leading-tight mb-3">
+          {parseMarkdownText(title)}
+        </h2>
+        {subtitle && (
+          <p className="text-2xl font-bold text-white/80">
+            {parseMarkdownText(subtitle)}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // ==========================================
 // Template 1: ベントー型メリデメ
 // ==========================================
@@ -54,37 +111,37 @@ export const GlassProsCons: React.FC<{
   darkMode?: boolean;
 }> = ({ title, pros, cons }) => {
   const maxItems = Math.max(pros.length, cons.length);
-  const itemHeight = 52;
-  const headerHeight = 76;
-  const titleHeight = 70;
-  const padding = 76;
-  const cardPadding = 64;
+  const itemHeight = 72;
+  const headerHeight = 100;
+  const titleHeight = 100;
+  const padding = 96;
+  const cardPadding = 80;
   const calculatedHeight = titleHeight + headerHeight + (maxItems * itemHeight) + cardPadding + padding;
 
   return (
     <div
-      className="w-[1280px] p-10 bg-white"
+      className="w-[1280px] p-12 bg-white"
       style={{ height: `${calculatedHeight}px` }}
     >
-      <h2 className="text-3xl font-bold mb-6 text-gray-900">
+      <h2 className="text-4xl font-black mb-8 text-gray-900">
         {parseMarkdownText(title)}
       </h2>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-6">
         {/* メリット - ベントーカード */}
-        <div className={`rounded-3xl p-8 bg-gradient-to-br ${COLORS.positive} relative overflow-hidden`}>
-          <div className="absolute -bottom-10 -right-10 opacity-10">
-            <TrendingUp className="w-44 h-44 text-white" />
+        <div className={`rounded-3xl p-10 bg-gradient-to-br ${COLORS.positive} relative overflow-hidden`}>
+          <div className="absolute -bottom-12 -right-12 opacity-20">
+            <TrendingUp className="w-56 h-56 text-white" />
           </div>
-          <div className="flex items-center gap-3 mb-5 text-white relative z-10">
-            <TrendingUp className="w-8 h-8" />
-            <span className="font-bold text-xl">メリット</span>
+          <div className="flex items-center gap-4 mb-6 text-white relative z-10">
+            <TrendingUp className="w-12 h-12" strokeWidth={2.5} />
+            <span className="font-black text-3xl">メリット</span>
           </div>
-          <ul className="space-y-3 relative z-10">
+          <ul className="space-y-4 relative z-10">
             {pros.map((pro, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <Check className="w-6 h-6 mt-0.5 flex-shrink-0 text-white/80" strokeWidth={2.5} />
-                <span className="text-lg leading-snug text-white/90">
+              <li key={i} className="flex items-start gap-4">
+                <Check className="w-9 h-9 mt-0.5 flex-shrink-0 text-white" strokeWidth={3} />
+                <span className="text-2xl font-bold leading-snug text-white">
                   {parseMarkdownText(pro)}
                 </span>
               </li>
@@ -93,19 +150,19 @@ export const GlassProsCons: React.FC<{
         </div>
 
         {/* デメリット - ベントーカード */}
-        <div className={`rounded-3xl p-8 bg-gradient-to-br ${COLORS.negative} relative overflow-hidden`}>
-          <div className="absolute -bottom-10 -right-10 opacity-10">
-            <TrendingDown className="w-44 h-44 text-white" />
+        <div className={`rounded-3xl p-10 bg-gradient-to-br ${COLORS.negative} relative overflow-hidden`}>
+          <div className="absolute -bottom-12 -right-12 opacity-20">
+            <TrendingDown className="w-56 h-56 text-white" />
           </div>
-          <div className="flex items-center gap-3 mb-5 text-white relative z-10">
-            <TrendingDown className="w-8 h-8" />
-            <span className="font-bold text-xl">デメリット</span>
+          <div className="flex items-center gap-4 mb-6 text-white relative z-10">
+            <TrendingDown className="w-12 h-12" strokeWidth={2.5} />
+            <span className="font-black text-3xl">デメリット</span>
           </div>
-          <ul className="space-y-3 relative z-10">
+          <ul className="space-y-4 relative z-10">
             {cons.map((con, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <X className="w-6 h-6 mt-0.5 flex-shrink-0 text-white/80" strokeWidth={2.5} />
-                <span className="text-lg leading-snug text-white/90">
+              <li key={i} className="flex items-start gap-4">
+                <X className="w-9 h-9 mt-0.5 flex-shrink-0 text-white" strokeWidth={3} />
+                <span className="text-2xl font-bold leading-snug text-white">
                   {parseMarkdownText(con)}
                 </span>
               </li>
@@ -130,36 +187,36 @@ export const MinimalStats: React.FC<{
   const cols = Math.min(displayStats.length, 3);
   const rows = Math.ceil(displayStats.length / 3);
 
-  const cardHeight = 140;
-  const titleHeight = 70;
-  const padding = 76;
-  const gap = 20;
+  const cardHeight = 200;
+  const titleHeight = 100;
+  const padding = 96;
+  const gap = 24;
   const calculatedHeight = titleHeight + (rows * cardHeight) + ((rows - 1) * gap) + padding;
 
   return (
     <div
-      className="w-[1280px] p-10 bg-white"
+      className="w-[1280px] p-12 bg-white"
       style={{ height: `${calculatedHeight}px` }}
     >
-      <h2 className="text-3xl font-bold mb-6 text-gray-900">
+      <h2 className="text-4xl font-black mb-8 text-gray-900">
         {parseMarkdownText(title)}
       </h2>
 
-      <div className="gap-5" style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+      <div className="gap-6" style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
         {displayStats.map((stat, i) => {
           const Icon = icons[i % icons.length];
           return (
             <div
               key={i}
-              className={`rounded-3xl p-6 bg-gradient-to-br ${STAT_GRADIENTS[i % STAT_GRADIENTS.length]} relative overflow-hidden`}
+              className={`rounded-3xl p-8 bg-gradient-to-br ${STAT_GRADIENTS[i % STAT_GRADIENTS.length]} relative overflow-hidden`}
             >
-              <div className="absolute -bottom-5 -right-5 opacity-10">
-                <Icon className="w-24 h-24 text-white" />
+              <div className="absolute -bottom-8 -right-8 opacity-20">
+                <Icon className="w-40 h-40 text-white" />
               </div>
-              <div className="text-base text-white/70 mb-2 relative z-10">
+              <div className="text-2xl font-bold text-white mb-3 relative z-10">
                 {parseMarkdownText(stat.label)}
               </div>
-              <div className="text-4xl font-black text-white relative z-10">
+              <div className="text-6xl font-black text-white relative z-10">
                 {parseMarkdownText(stat.value)}
               </div>
             </div>
@@ -180,18 +237,18 @@ export const FloatingComparison: React.FC<{
   darkMode?: boolean;
 }> = ({ title, headers, rows }) => {
   const displayRows = rows.slice(0, 8);
-  const rowHeight = 70;
-  const headerHeight = 70;
-  const titleHeight = 70;
-  const padding = 116;
+  const rowHeight = 100;
+  const headerHeight = 100;
+  const titleHeight = 100;
+  const padding = 140;
   const calculatedHeight = titleHeight + headerHeight + (displayRows.length * rowHeight) + padding;
 
   return (
     <div
-      className="w-[1280px] p-10 bg-white"
+      className="w-[1280px] p-12 bg-white"
       style={{ height: `${calculatedHeight}px` }}
     >
-      <h2 className="text-3xl font-bold mb-6 text-gray-900">
+      <h2 className="text-4xl font-black mb-8 text-gray-900">
         {parseMarkdownText(title)}
       </h2>
 
@@ -199,14 +256,14 @@ export const FloatingComparison: React.FC<{
         {/* ヘッダー - ベントーカードスタイル */}
         <div
           className={`grid bg-gradient-to-r ${COLORS.primary} relative overflow-hidden`}
-          style={{ gridTemplateColumns: `220px repeat(${headers.length}, 1fr)` }}
+          style={{ gridTemplateColumns: `280px repeat(${headers.length}, 1fr)` }}
         >
-          <div className="absolute -bottom-6 -right-6 opacity-10">
-            <Layers className="w-32 h-32 text-white" />
+          <div className="absolute -bottom-8 -right-8 opacity-15">
+            <Layers className="w-48 h-48 text-white" />
           </div>
-          <div className="p-5" />
+          <div className="p-6" />
           {headers.map((h, i) => (
-            <div key={i} className="p-5 font-bold text-center text-xl text-white relative z-10">
+            <div key={i} className="p-6 font-black text-center text-3xl text-white relative z-10">
               {parseMarkdownText(h)}
             </div>
           ))}
@@ -217,25 +274,25 @@ export const FloatingComparison: React.FC<{
           <div
             key={i}
             className={`grid ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
-            style={{ gridTemplateColumns: `220px repeat(${headers.length}, 1fr)` }}
+            style={{ gridTemplateColumns: `280px repeat(${headers.length}, 1fr)` }}
           >
-            <div className="p-5 font-medium text-lg text-gray-700 border-r border-gray-100">
+            <div className="p-6 font-bold text-2xl text-gray-800 border-r border-gray-100 flex items-center">
               {parseMarkdownText(row.label)}
             </div>
             {row.values.map((v, j) => (
-              <div key={j} className="p-5 flex items-center justify-center">
+              <div key={j} className="p-6 flex items-center justify-center">
                 {typeof v === 'boolean' ? (
                   v ? (
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <Check className="w-6 h-6 text-emerald-600" strokeWidth={3} />
+                    <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <Check className="w-10 h-10 text-emerald-600" strokeWidth={3} />
                     </div>
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <X className="w-6 h-6 text-gray-400" strokeWidth={3} />
+                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                      <X className="w-10 h-10 text-gray-400" strokeWidth={3} />
                     </div>
                   )
                 ) : (
-                  <span className="text-lg text-gray-700">
+                  <span className="text-2xl font-bold text-gray-700">
                     {parseMarkdownText(v)}
                   </span>
                 )}
@@ -259,37 +316,37 @@ export const HorizontalBentoStats: React.FC<{
   const icons = [Layers, Code, Zap, TrendingUp];
   const displayStats = stats.slice(0, 4);
 
-  const cardHeight = 128;
-  const titleHeight = title ? 64 : 0;
-  const padding = 76;
+  const cardHeight = 180;
+  const titleHeight = title ? 90 : 0;
+  const padding = 96;
   const calculatedHeight = titleHeight + cardHeight + padding;
 
   return (
     <div
-      className="w-[1280px] p-10 bg-white"
+      className="w-[1280px] p-12 bg-white"
       style={{ height: `${calculatedHeight}px` }}
     >
       {title && (
-        <h2 className="text-2xl font-bold mb-5 text-gray-900">
+        <h2 className="text-3xl font-black mb-6 text-gray-900">
           {parseMarkdownText(title)}
         </h2>
       )}
 
-      <div className="grid grid-cols-4 gap-5">
+      <div className="grid grid-cols-4 gap-6">
         {displayStats.map((stat, i) => {
           const Icon = icons[i % icons.length];
           return (
             <div
               key={i}
-              className={`rounded-2xl p-6 bg-gradient-to-br ${STAT_GRADIENTS[i % STAT_GRADIENTS.length]} relative overflow-hidden`}
+              className={`rounded-3xl p-8 bg-gradient-to-br ${STAT_GRADIENTS[i % STAT_GRADIENTS.length]} relative overflow-hidden`}
             >
-              <div className="absolute -bottom-3 -right-3 opacity-10">
-                <Icon className="w-20 h-20 text-white" />
+              <div className="absolute -bottom-6 -right-6 opacity-20">
+                <Icon className="w-32 h-32 text-white" />
               </div>
-              <div className="text-base text-white/70 mb-2 relative z-10">
+              <div className="text-xl font-bold text-white mb-3 relative z-10">
                 {parseMarkdownText(stat.label)}
               </div>
-              <div className="text-3xl font-black text-white relative z-10">
+              <div className="text-5xl font-black text-white relative z-10">
                 {parseMarkdownText(stat.value)}
               </div>
             </div>
@@ -309,60 +366,60 @@ export const BeforeAfterStats: React.FC<{
   darkMode?: boolean;
 }> = ({ title, items }) => {
   const displayItems = items.slice(0, 4);
-  const itemHeight = 90;
-  const titleHeight = 70;
-  const headerHeight = 52;
-  const padding = 76;
-  const gap = 12;
+  const itemHeight = 120;
+  const titleHeight = 100;
+  const headerHeight = 70;
+  const padding = 96;
+  const gap = 16;
   const calculatedHeight = titleHeight + headerHeight + (displayItems.length * itemHeight) + ((displayItems.length - 1) * gap) + padding;
 
   return (
     <div
-      className="w-[1280px] p-10 bg-white"
+      className="w-[1280px] p-12 bg-white"
       style={{ height: `${calculatedHeight}px` }}
     >
-      <h2 className="text-3xl font-bold mb-5 text-gray-900 flex items-center gap-3">
-        <Zap className="w-8 h-8 text-sky-500" />
+      <h2 className="text-4xl font-black mb-6 text-gray-900 flex items-center gap-4">
+        <Zap className="w-12 h-12 text-sky-500" />
         {parseMarkdownText(title)}
       </h2>
 
       {/* ヘッダーラベル */}
-      <div className="grid grid-cols-[220px_1fr_52px_1fr] gap-4 mb-4 text-base text-gray-500 font-medium">
+      <div className="grid grid-cols-[280px_1fr_72px_1fr] gap-5 mb-5 text-xl text-gray-500 font-bold">
         <div></div>
         <div className="text-center">BEFORE</div>
         <div></div>
         <div className="text-center">AFTER</div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {displayItems.map((item, i) => (
-          <div key={i} className="grid grid-cols-[220px_1fr_52px_1fr] gap-4 items-center">
+          <div key={i} className="grid grid-cols-[280px_1fr_72px_1fr] gap-5 items-center">
             {/* ラベル */}
-            <div className="text-lg text-gray-700 font-medium">
+            <div className="text-2xl text-gray-800 font-bold">
               {parseMarkdownText(item.label)}
             </div>
 
             {/* Before - ベントーカード */}
-            <div className={`rounded-2xl px-6 py-5 bg-gradient-to-br ${COLORS.negative} relative overflow-hidden`}>
-              <div className="absolute -bottom-2 -right-2 opacity-10">
-                <X className="w-12 h-12 text-white" />
+            <div className={`rounded-2xl px-8 py-6 bg-gradient-to-br ${COLORS.negative} relative overflow-hidden`}>
+              <div className="absolute -bottom-4 -right-4 opacity-20">
+                <X className="w-20 h-20 text-white" />
               </div>
-              <div className="text-center text-white font-bold text-2xl relative z-10">
+              <div className="text-center text-white font-black text-4xl relative z-10">
                 {parseMarkdownText(item.before)}
               </div>
             </div>
 
             {/* 矢印 */}
-            <div className={`rounded-xl py-4 bg-gradient-to-br ${COLORS.primary} flex items-center justify-center`}>
-              <ArrowRight className="w-6 h-6 text-white" />
+            <div className={`rounded-xl py-5 bg-gradient-to-br ${COLORS.primary} flex items-center justify-center`}>
+              <ArrowRight className="w-10 h-10 text-white" strokeWidth={3} />
             </div>
 
             {/* After - ベントーカード */}
-            <div className={`rounded-2xl px-6 py-5 bg-gradient-to-br ${COLORS.positive} relative overflow-hidden`}>
-              <div className="absolute -bottom-2 -right-2 opacity-10">
-                <Check className="w-12 h-12 text-white" />
+            <div className={`rounded-2xl px-8 py-6 bg-gradient-to-br ${COLORS.positive} relative overflow-hidden`}>
+              <div className="absolute -bottom-4 -right-4 opacity-20">
+                <Check className="w-20 h-20 text-white" />
               </div>
-              <div className="text-center text-white font-bold text-2xl relative z-10">
+              <div className="text-center text-white font-black text-4xl relative z-10">
                 {parseMarkdownText(item.after)}
               </div>
             </div>
@@ -373,11 +430,51 @@ export const BeforeAfterStats: React.FC<{
   );
 };
 
+// ==========================================
+// Template 6: CTAバナー
+// ==========================================
+export const CtaBanner: React.FC<{
+  title: string;
+  subtitle?: string;
+  url?: string;
+  darkMode?: boolean;
+}> = ({ title, subtitle, url }) => {
+  return (
+    <div
+      className={`w-[1280px] h-[240px] p-12 bg-gradient-to-r ${COLORS.accent} relative overflow-hidden flex items-center justify-between`}
+    >
+      <div className="absolute -bottom-12 -left-12 opacity-20">
+        <Zap className="w-56 h-56 text-white" />
+      </div>
+      <div className="relative z-10">
+        <h3 className="text-4xl font-black text-white mb-2">
+          {parseMarkdownText(title)}
+        </h3>
+        {subtitle && (
+          <p className="text-2xl font-bold text-white/80">
+            {parseMarkdownText(subtitle)}
+          </p>
+        )}
+      </div>
+      <div className="relative z-10 flex items-center gap-6">
+        {url && (
+          <div className="text-white/70 text-lg">{url}</div>
+        )}
+        <div className="bg-white/20 rounded-full p-5">
+          <ArrowRight className="w-10 h-10 text-white" strokeWidth={3} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // テンプレート一覧
 export const infographicTemplates = [
+  { id: 'heading-banner', name: '見出し', component: HeadingBanner },
   { id: 'glass-proscons', name: 'メリデメ', component: GlassProsCons },
   { id: 'minimal-stats', name: '統計', component: MinimalStats },
   { id: 'floating-comparison', name: '比較表', component: FloatingComparison },
   { id: 'horizontal-bento', name: '横ベントー', component: HorizontalBentoStats },
   { id: 'before-after', name: 'ビフォアフ', component: BeforeAfterStats },
+  { id: 'cta-banner', name: 'CTAバナー', component: CtaBanner },
 ];
